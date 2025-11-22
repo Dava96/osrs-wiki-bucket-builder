@@ -22,6 +22,7 @@
   "main": "dist/index.js",
   "license": "MIT",
   "devDependencies": {
+    "@changesets/cli": "^2.29.7",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.13"
@@ -32,6 +33,8 @@
     "ci": "npm run build && npm run check-format && npm run test",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "local-release": "changeset version && changeset publish",
+    "prepublishOnly": "npm run ci"
   }
 }
