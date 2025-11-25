@@ -35,6 +35,7 @@
     "check-format": "prettier --check .",
     "test": "vitest run",
     "local-release": "changeset version && changeset publish",
-    "prepublishOnly": "npm run ci"
+    "prepublishOnly": "npm run ci",
+    "temp-test": "npm run build && node dist/index.js"
   }
 }
