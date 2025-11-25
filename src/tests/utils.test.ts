@@ -1,4 +1,4 @@
-import { bucket } from '../src/helpers.js';
+import { bucket } from '../helpers.js';
 import { expect, test } from 'vitest';
 
 test('bucket', () => {
