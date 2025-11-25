@@ -1,4 +1,3 @@
-
 import { wrap } from './utils.js';
 
 export const MIN_LIMIT = 1;
@@ -7,11 +6,10 @@ export const MAX_LIMIT = 5000;
 export const DEFAULT_OFFSET = 0;
 
 class BucketQueryBuilder<BucketFields extends string, BucketValues> {
-
   private queryString: string[] = [];
 
   constructor(private bucketName: string) {
-    this.queryString.push(`bucket('${this.bucketName}')`)
+    this.queryString.push(`bucket('${this.bucketName}')`);
   }
 
   select(...fields: BucketFields[]): this {
@@ -21,7 +19,10 @@ class BucketQueryBuilder<BucketFields extends string, BucketValues> {
     return this;
   }
 
-  where<BucketField extends BucketFields & keyof BucketValues>(field: BucketField, value: BucketValues[BucketField]): this {
+  where<BucketField extends BucketFields & keyof BucketValues>(
+    field: BucketField,
+    value: BucketValues[BucketField],
+  ): this {
     this.queryString.push(`.where('${field}','${value}')`);
     return this;
   }
@@ -39,9 +40,8 @@ class BucketQueryBuilder<BucketFields extends string, BucketValues> {
   }
 
   run(): string {
-    return this.queryString.join("") + ".run()";
+    return this.queryString.join('') + '.run()';
   }
 }
-
 
 export default BucketQueryBuilder;

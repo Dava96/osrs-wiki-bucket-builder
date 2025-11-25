@@ -2,7 +2,10 @@ import { bucket } from './helpers.js';
 
 // Temporary manual test to verify the query builder and that the API responds.
 try {
-  const query = bucket('infobox_item').select('item_id', 'image', 'examine').where('item_name', 'Raw lobster').run()
+  const query = bucket('infobox_item')
+    .select('item_id', 'image', 'examine')
+    .where('item_name', 'Raw lobster')
+    .run();
 
   const url = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&query=${encodeURIComponent(query)}`;
   const res = await fetch(url);
