@@ -1,41 +1,36 @@
 {
-  "name": "osrs-wiki-bucket-builder",
-  "version": "1.0.0",
-  "description": "A Package to build Query strings for the OSRS Wiki Bucket API",
-  "keywords": [
-    "osrs",
-    "typescript"
-  ],
-  "homepage": "https://github.com/Dava96/osrs-wiki-bucket-builder",
-  "bugs": {
-    "url": "https://github.com/Dava96/osrs-wiki-bucket-builder/issues"
-  },
-  "author": "Dava96 <Dava96@github.com>",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Dava96/osrs-wiki-bucket-builder.git"
-  },
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "main": "dist/index.js",
-  "license": "MIT",
-  "devDependencies": {
-    "@changesets/cli": "^2.29.7",
-    "prettier": "^3.6.2",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.13"
-  },
-  "scripts": {
-    "dev": "vitest",
-    "build": "tsc",
-    "ci": "npm run build && npm run check-format && npm run test",
-    "format": "prettier --write .",
-    "check-format": "prettier --check .",
-    "test": "vitest run",
-    "local-release": "changeset version && changeset publish",
-    "prepublishOnly": "npm run ci",
-    "temp-test": "npm run build && node dist/index.js"
-  }
+    "name": "@dava96/osrs-wiki-bucket-builder",
+    "version": "1.0.0",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+        "lint": "eslint \"src/**/*.ts\"",
+        "format": "prettier --write \"src/**/*.{ts,json}\"",
+        "pretest": "npm run lint",
+        "buckets": "npx tsx .\\scripts\\sync_buckets.ts"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "devDependencies": {
+        "@eslint/js": "^9.39.2",
+        "@jest/globals": "^30.2.0",
+        "@types/jest": "^30.0.0",
+        "@types/node": "^25.2.1",
+        "@typescript-eslint/eslint-plugin": "^8.54.0",
+        "@typescript-eslint/parser": "^8.54.0",
+        "axios": "^1.13.4",
+        "eslint": "^9.39.2",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.5",
+        "globals": "^17.3.0",
+        "jest": "^30.2.0",
+        "prettier": "^3.8.1",
+        "ts-jest": "^29.4.6",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.54.0"
+    }
 }

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSRS Wiki Bucket Builder — Documentation</title>
+    <meta name="description" content="A strictly typed, zero-dependency TypeScript query builder for the Old School RuneScape Wiki Bucket API.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --green: #3fb950;
+            --code-bg: #1c2128;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        header h1 span { color: var(--accent); }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .badges {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .badge.green { color: var(--green); border-color: #23472850; }
+        .badge.blue { color: var(--accent); border-color: #1f6feb50; }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 2.5rem 0 1rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin: 2rem 0 0.75rem;
+            color: var(--accent);
+        }
+
+        p { margin-bottom: 0.75rem; }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+        .run-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 0.5rem 0 1.5rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            background: #1f6feb20;
+            border: 1px solid #1f6feb40;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .run-link:hover {
+            background: #1f6feb35;
+            border-color: var(--accent);
+            text-decoration: none;
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+            margin-bottom: 0.75rem;
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.88em;
+        }
+
+        :not(pre) > code {
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            header h1 { font-size: 1.6rem; }
+            pre { font-size: 0.8rem; padding: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><span>OSRS Wiki</span> Bucket Builder</h1>
+            <p>A strictly typed, zero-dependency TypeScript query builder for the Old School RuneScape Wiki Bucket API.</p>
+            <div class="badges">
+                <span class="badge green">✓ 100% Type Safe</span>
+                <span class="badge blue">⚡ Zero Dependencies</span>
+                <span class="badge">📦 ESM Ready</span>
+            </div>
+        </header>
+
+        <div class="install-block">
+            <pre><code class="language-bash">npm install osrs-wiki-bucket-builder</code></pre>
+        </div>
+
+        <h2>Quick Start</h2>
+        <pre><code class="language-typescript">import { bucket } from 'osrs-wiki-bucket-builder';
+
+const query = bucket('exchange')
+    .select('id', 'name', 'value')
+    .where('name', 'Abyssal whip')
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27id%27,%20%27name%27,%20%27value%27).where({%20%27name%27,%20%27Abyssal%20whip%27%20}).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h2>Examples</h2>
+
+        <h3>1. Basic Select</h3>
+        <pre><code class="language-typescript">const query = bucket('exchange')
+    .select('name', 'value', 'limit')
+    .limit(5)
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27,%20%27limit%27).limit(5).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>2. Filtering with Where</h3>
+        <pre><code class="language-typescript">const query = bucket('exchange')
+    .select('name', 'value')
+    .where('name', 'Dragon scimitar')
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27name%27,%20%27Dragon%20scimitar%27%20}).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>3. Comparison Operators</h3>
+        <pre><code class="language-typescript">const query = bucket('exchange')
+    .select('name', 'value')
+    .where('value', '>', 1000000)
+    .limit(10)
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27value%27,%20%27%3E%27,%201000000%20}).limit(10).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>4. Null Checks — <code>.whereNotNull()</code></h3>
+        <pre><code class="language-typescript">const query = bucket('infobox_item')
+    .select('item_name', 'weight')
+    .whereNotNull('weight')
+    .limit(10)
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).select(%27item_name%27,%20%27weight%27).where({%20%27weight%27,%20%27!=%27,%20bucket.Null()%20}).limit(10).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>5. Range Queries — <code>.whereBetween()</code></h3>
+        <pre><code class="language-typescript">const query = bucket('exchange')
+    .select('name', 'value')
+    .whereBetween('value', [10000, 100000])
+    .limit(10)
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27value%27,%20%27%3E=%27,%2010000%20}).where({%20%27value%27,%20%27%3C=%27,%20100000%20}).limit(10).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>6. OR Conditions — <code>.whereIn()</code></h3>
+        <pre><code class="language-typescript">const query = bucket('exchange')
+    .select('name', 'value')
+    .whereIn('name', ['Bronze axe', 'Iron axe', 'Steel axe'])
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.Or({%20%27name%27,%20%27Bronze%20axe%27%20},%20{%20%27name%27,%20%27Iron%20axe%27%20},%20{%20%27name%27,%20%27Steel%20axe%27%20})).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>7. Exclusion — <code>.whereNot()</code></h3>
+        <pre><code class="language-typescript">const query = bucket('exchange')
+    .select('name', 'value')
+    .whereNot('name', 'Coins')
+    .where('value', '>', 0)
+    .limit(10)
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27name%27,%20%27!=%27,%20%27Coins%27%20}).where({%20%27value%27,%20%27%3E%27,%200%20}).limit(10).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>8. Single Join</h3>
+        <pre><code class="language-typescript">const query = bucket('infobox_item')
+    .join('exchange', 'item_name', 'name')
+    .select('item_name', 'weight', 'exchange.value')
+    .limit(5)
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).join(%27exchange%27,%20%27infobox_item.item_name%27,%20%27exchange.name%27).select(%27item_name%27,%20%27weight%27,%20%27exchange.value%27).limit(5).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>9. Join with Alias</h3>
+        <p>Aliases are a client-side convenience — they're resolved to real bucket names in the generated Lua.</p>
+        <pre><code class="language-typescript">const query = bucket('infobox_item')
+    .join('exchange', 'ex', 'item_name', 'name')
+    .select('item_name', 'ex.value', 'ex.limit')
+    .where('ex.value', '>', 100000)
+    .limit(10)
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).join(%27exchange%27,%20%27infobox_item.item_name%27,%20%27exchange.name%27).select(%27item_name%27,%20%27exchange.value%27,%20%27exchange.limit%27).where({%20%27exchange.value%27,%20%27%3E%27,%20100000%20}).limit(10).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>10. Multiple Joins</h3>
+        <p>Join three buckets to combine item info, GE prices, and shop data.</p>
+        <pre><code class="language-typescript">const query = bucket('infobox_item')
+    .join('exchange', 'item_name', 'name')
+    .join('storeline', 'item_name', 'sold_item')
+    .select(
+        'item_name', 'weight',
+        'exchange.value',
+        'storeline.sold_by', 'storeline.store_sell_price'
+    )
+    .limit(5)
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).join(%27exchange%27,%20%27infobox_item.item_name%27,%20%27exchange.name%27).join(%27storeline%27,%20%27infobox_item.item_name%27,%20%27storeline.sold_item%27).select(%27item_name%27,%20%27weight%27,%20%27exchange.value%27,%20%27storeline.sold_by%27,%20%27storeline.store_sell_price%27).limit(5).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <h3>11. Ordering &amp; Pagination — <code>.paginate()</code> / <code>.first()</code></h3>
+        <pre><code class="language-typescript">const page2 = bucket('exchange')
+    .select('name', 'value')
+    .where('value', '>', 0)
+    .orderBy('value', 'desc')
+    .paginate(2, 25)
+    .run();
+
+const top = bucket('exchange')
+    .select('name', 'value')
+    .orderBy('value', 'desc')
+    .first()
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27value%27,%20%27%3E%27,%200%20}).orderBy(%27value%27,%20%27desc%27).limit(25).offset(25).run()" target="_blank" rel="noopener">▶ Run page 2</a>
+
+        <h3>12. Conditional — <code>.when()</code></h3>
+        <pre><code class="language-typescript">const isMembers = true;
+const query = bucket('infobox_item')
+    .select('item_name', 'value', 'members')
+    .when(isMembers, (q) => q.where('members', true))
+    .limit(10)
+    .run();</code></pre>
+
+        <h3>13. Full Complex Query</h3>
+        <p>Multi-join with aliases, mixed conditions, ordering, and pagination.</p>
+        <pre><code class="language-typescript">import { bucket, Bucket } from 'osrs-wiki-bucket-builder';
+
+const query = bucket('infobox_item')
+    .join('exchange', 'ex', 'item_name', 'name')
+    .join('storeline', 'shop', 'item_name', 'sold_item')
+    .select(
+        'item_name', 'weight',
+        'ex.value', 'ex.limit',
+        'shop.sold_by', 'shop.store_sell_price'
+    )
+    .where('ex.value', '>', 1000)
+    .whereNotNull('shop.sold_by')
+    .orderBy('ex.value', 'desc')
+    .limit(10)
+    .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).join(%27exchange%27,%20%27infobox_item.item_name%27,%20%27exchange.name%27).join(%27storeline%27,%20%27infobox_item.item_name%27,%20%27storeline.sold_item%27).select(%27item_name%27,%20%27weight%27,%20%27exchange.value%27,%20%27exchange.limit%27,%20%27storeline.sold_by%27,%20%27storeline.store_sell_price%27).where({%20%27exchange.value%27,%20%27%3E%27,%201000%20}).where({%20%27storeline.sold_by%27,%20%27!=%27,%20bucket.Null()%20}).orderBy(%27exchange.value%27,%20%27desc%27).limit(10).run()" target="_blank" rel="noopener">▶ Run this query</a>
+
+        <hr>
+
+        <h2>Convenience Helpers</h2>
+        <table>
+            <thead>
+                <tr><th>Method</th><th>Equivalent To</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>.whereNot(field, value)</code></td><td><code>.where(field, '!=', value)</code></td></tr>
+                <tr><td><code>.whereNull(field)</code></td><td><code>.where(field, Bucket.Null())</code></td></tr>
+                <tr><td><code>.whereNotNull(field)</code></td><td><code>.where(field, '!=', Bucket.Null())</code></td></tr>
+                <tr><td><code>.whereBetween(field, [a, b])</code></td><td><code>.where(field, '&gt;=', a).where(field, '&lt;=', b)</code></td></tr>
+                <tr><td><code>.whereIn(field, [v1, v2])</code></td><td><code>.where(Bucket.Or(...))</code></td></tr>
+                <tr><td><code>.first()</code></td><td><code>.limit(1)</code></td></tr>
+                <tr><td><code>.paginate(page, perPage)</code></td><td><code>.limit(perPage).offset((page-1) * perPage)</code></td></tr>
+                <tr><td><code>.when(cond, fn)</code></td><td>Conditionally applies <code>fn</code></td></tr>
+                <tr><td><code>.clone()</code></td><td>Creates an independent copy</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Resources</h2>
+        <p>
+            <a href="https://meta.weirdgloop.org/w/Extension:Bucket/Usage" target="_blank" rel="noopener">Bucket Usage Guide</a> ·
+            <a href="https://meta.weirdgloop.org/w/Extension:Bucket/Api" target="_blank" rel="noopener">Bucket API</a> ·
+            <a href="https://oldschool.runescape.wiki/w/Special:AllPages?from=&to=&namespace=9592" target="_blank" rel="noopener">Browse All Buckets</a> ·
+            <a href="https://github.com/Dava96/osrs-wiki-bucket-builder" target="_blank" rel="noopener">GitHub</a>
+        </p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/lua.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>
