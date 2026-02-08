@@ -15,54 +15,45 @@ Generates valid Lua query strings that can be executed via the Wiki's `action=bu
 ## Installation
 
 ```bash
-npm install osrs-wiki-bucket-builder
+npm install @dava96/osrs-wiki-bucket-builder
 ```
 
 ## Quick Start
 
 ```typescript
-import { bucket } from 'osrs-wiki-bucket-builder';
+import { bucket } from '@dava96/osrs-wiki-bucket-builder';
 
 const query = bucket('exchange')
     .select('id', 'name', 'value')
     .where('name', 'Abyssal whip')
     .run();
-```
 
-Generated Lua:
-
-```lua
-bucket('exchange').select('id', 'name', 'value').where({ 'name', 'Abyssal whip' }).run()
+// query is a URL-encoded Lua string, ready to use in a fetch call
+const url = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&query=${query}`;
+const response = await fetch(url);
+const data = await response.json();
+console.log(data.bucket); // [{ id: ..., name: 'Abyssal whip', value: ... }]
 ```
 
 [▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27id%27,%20%27name%27,%20%27value%27).where({%20%27name%27,%20%27Abyssal%20whip%27%20}).run())
 
-## Fetching Data
+---
 
-The generated query string is **URL encoded by default**, so you can pass it directly to the API.
+## Core Concepts
 
-```typescript
-const queryStr = bucket('exchange')
-    .select('id', 'name', 'value')
-    .where('name', 'Abyssal whip')
-    .run(); // Returns encoded string like "bucket('exchange')..."
+**What are Buckets?** Buckets are structured data tables exposed by the OSRS Wiki through the [Bucket extension](https://meta.weirdgloop.org/w/Extension:Bucket/Usage). Each bucket (e.g. `exchange`, `infobox_item`, `storeline`) contains rows and fields, similar to a SQL table.
 
-const wikiUrl = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&query=${queryStr}`;
+**What does this library do?** This library provides a fluent TypeScript API that generates the Lua query strings the Wiki API expects. You chain methods like `.select()`, `.where()`, and `.join()`, and the builder outputs a correctly formatted Lua string. It never makes network requests — you handle fetching yourself.
 
-const response = await fetch(wikiUrl);
-const data = await response.json();
-console.log(data);
-```
-
-> **Note:** If you need the raw Lua string for debugging, pass `{ encodeURI: false }` to `.run()`.
+**How does type safety work?** The `scripts/sync_buckets.ts` script fetches the schema of every bucket from the Wiki and generates TypeScript interfaces in `src/generated/definitions.ts`. This means your IDE will autocomplete bucket names and catch invalid field references at compile time.
 
 ---
 
-## Examples
+## Guide
 
-### 1. Basic Select
+### Selecting Fields
 
-Select a few fields from the `exchange` bucket.
+Use `.select()` to pick which fields to retrieve. Without `.select()`, the API returns all fields.
 
 ```typescript
 const query = bucket('exchange')
@@ -71,18 +62,36 @@ const query = bucket('exchange')
     .run();
 ```
 
-```lua
-bucket('exchange').select('name', 'value', 'limit').limit(5).run()
-```
-
 [▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27,%20%27limit%27).limit(5).run())
 
-### 2. Filtering with Where
+#### Wildcards
 
-Filter for a specific item by name.
+You can use `*` to select all fields from the main bucket, or `alias.*` from a joined bucket:
 
 ```typescript
-const query = bucket('exchange')
+// All fields from exchange
+bucket('exchange').select('*').limit(5).run();
+
+// All fields from a joined bucket
+bucket('infobox_item')
+    .join('exchange', 'item_name', 'name')
+    .select('item_name', 'exchange.*')
+    .limit(5)
+    .run();
+```
+
+Wildcards are expanded client-side into explicit field lists using the generated schema.
+
+---
+
+### Filtering with Where
+
+The `.where()` method filters results. It supports three calling styles:
+
+#### Equality (implicit `=`)
+
+```typescript
+bucket('exchange')
     .select('name', 'value')
     .where('name', 'Dragon scimitar')
     .run();
@@ -90,12 +99,12 @@ const query = bucket('exchange')
 
 [▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27name%27,%20%27Dragon%20scimitar%27%20}).run())
 
-### 3. Operators
+#### Comparison operators
 
-Use comparison operators to filter numeric values.
+Supported operators: `=`, `!=`, `>`, `<`, `>=`, `<=`
 
 ```typescript
-const query = bucket('exchange')
+bucket('exchange')
     .select('name', 'value')
     .where('value', '>', 1000000)
     .limit(10)
@@ -104,66 +113,29 @@ const query = bucket('exchange')
 
 [▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27value%27,%20%27%3E%27,%201000000%20}).limit(10).run())
 
-### 4. Null Checks
+#### Multiple conditions (implicit AND)
 
-Filter for rows where a field is or isn't null. Use the `.whereNull()` and `.whereNotNull()` convenience helpers:
+Chain `.where()` calls to combine conditions with AND:
 
 ```typescript
-import { bucket } from 'osrs-wiki-bucket-builder';
-
-const query = bucket('infobox_item')
-    .select('item_name', 'weight')
-    .whereNotNull('weight')
+bucket('exchange')
+    .select('name', 'value')
+    .where('value', '>', 10000)
+    .where('value', '<', 100000)
     .limit(10)
     .run();
 ```
 
-[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).select(%27item_name%27,%20%27weight%27).where({%20%27weight%27,%20%27!=%27,%20bucket.Null()%20}).limit(10).run())
+---
 
-### 5. Multiple Conditions with whereBetween
+### Convenience Filters
 
-Chain `.where()` calls for implicit AND. Use `.whereBetween()` for range queries:
+These shorthand methods simplify common filtering patterns:
 
-```typescript
-const query = bucket('exchange')
-    .select('name', 'value')
-    .whereBetween('value', [10000, 100000])
-    .limit(10)
-    .run();
-```
-
-[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27value%27,%20%27%3E=%27,%2010000%20}).where({%20%27value%27,%20%27%3C=%27,%20100000%20}).limit(10).run())
-
-### 6. OR Conditions with whereIn
-
-Use `.whereIn()` to match any value from a list (generates `Bucket.Or()` internally):
+#### `.whereNot(field, value)` — exclude matches
 
 ```typescript
-const query = bucket('exchange')
-    .select('name', 'value')
-    .whereIn('name', ['Bronze axe', 'Iron axe', 'Steel axe'])
-    .run();
-```
-
-[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.Or({%20%27name%27,%20%27Bronze%20axe%27%20},%20{%20%27name%27,%20%27Iron%20axe%27%20},%20{%20%27name%27,%20%27Steel%20axe%27%20})).run())
-
-Or use `Bucket.Or()` explicitly for more control:
-
-```typescript
-import { bucket, Bucket } from 'osrs-wiki-bucket-builder';
-
-const query = bucket('exchange')
-    .select('name', 'value')
-    .where(Bucket.Or(['name', 'Bronze axe'], ['name', 'Iron axe'], ['name', 'Steel axe']))
-    .run();
-```
-
-### 7. whereNot
-
-Exclude specific values using `.whereNot()`:
-
-```typescript
-const query = bucket('exchange')
+bucket('exchange')
     .select('name', 'value')
     .whereNot('name', 'Coins')
     .where('value', '>', 0)
@@ -173,12 +145,114 @@ const query = bucket('exchange')
 
 [▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27name%27,%20%27!=%27,%20%27Coins%27%20}).where({%20%27value%27,%20%27%3E%27,%200%20}).limit(10).run())
 
-### 8. Single Join
-
-Join two buckets together. The join fields specify how rows match between tables.
+#### `.whereNull(field)` / `.whereNotNull(field)` — null checks
 
 ```typescript
-const query = bucket('infobox_item')
+bucket('infobox_item')
+    .select('item_name', 'weight')
+    .whereNotNull('weight')
+    .limit(10)
+    .run();
+```
+
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).select(%27item_name%27,%20%27weight%27).where({%20%27weight%27,%20%27!=%27,%20bucket.Null()%20}).limit(10).run())
+
+#### `.whereBetween(field, [min, max])` — inclusive range
+
+```typescript
+bucket('exchange')
+    .select('name', 'value')
+    .whereBetween('value', [10000, 100000])
+    .limit(10)
+    .run();
+```
+
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27value%27,%20%27%3E=%27,%2010000%20}).where({%20%27value%27,%20%27%3C=%27,%20100000%20}).limit(10).run())
+
+#### `.whereIn(field, values)` — match any value
+
+Generates `Bucket.Or()` internally:
+
+```typescript
+bucket('exchange')
+    .select('name', 'value')
+    .whereIn('name', ['Bronze axe', 'Iron axe', 'Steel axe'])
+    .run();
+```
+
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.Or({%20%27name%27,%20%27Bronze%20axe%27%20},%20{%20%27name%27,%20%27Iron%20axe%27%20},%20{%20%27name%27,%20%27Steel%20axe%27%20})).run())
+
+---
+
+### Combining Conditions
+
+For more complex logic, use the `Bucket` helper object to construct AND, OR, and NOT conditions directly.
+
+```typescript
+import { bucket, Bucket } from '@dava96/osrs-wiki-bucket-builder';
+```
+
+#### `Bucket.Or(...)` — match any condition
+
+```typescript
+bucket('exchange')
+    .select('name', 'value')
+    .where(Bucket.Or(
+        ['name', 'Bronze axe'],
+        ['name', 'Iron axe'],
+        ['name', 'Steel axe']
+    ))
+    .run();
+```
+
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.Or({%20%27name%27,%20%27Bronze%20axe%27%20},%20{%20%27name%27,%20%27Iron%20axe%27%20},%20{%20%27name%27,%20%27Steel%20axe%27%20})).run())
+
+#### `Bucket.And(...)` — all conditions must match
+
+```typescript
+bucket('exchange')
+    .select('name', 'value')
+    .where(Bucket.And(
+        ['value', '>', 1000],
+        ['value', '<', 50000]
+    ))
+    .run();
+```
+
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.And({%20%27value%27,%20%27%3E%27,%201000%20},%20{%20%27value%27,%20%27%3C%27,%2050000%20})).run())
+
+#### `Bucket.Not(...)` — negate a condition
+
+```typescript
+bucket('exchange')
+    .select('name', 'value')
+    .where(Bucket.Not(['name', 'Coins']))
+    .run();
+```
+
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.Not({%20%27name%27,%20%27Coins%27%20})).run())
+
+#### `Bucket.Null()` — represents a null value
+
+```typescript
+bucket('infobox_item')
+    .select('item_name', 'weight')
+    .where('weight', '!=', Bucket.Null())
+    .run();
+```
+
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).select(%27item_name%27,%20%27weight%27).where({%20%27weight%27,%20%27!=%27,%20bucket.Null()%20}).run())
+
+---
+
+### Joining Buckets
+
+Join two or more buckets to combine data from different sources. The join fields specify how rows match between buckets (like a SQL JOIN).
+
+#### Basic join
+
+```typescript
+bucket('infobox_item')
     .join('exchange', 'item_name', 'name')
     .select('item_name', 'weight', 'exchange.value')
     .limit(5)
@@ -187,12 +261,12 @@ const query = bucket('infobox_item')
 
 [▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).join(%27exchange%27,%20%27infobox_item.item_name%27,%20%27exchange.name%27).select(%27item_name%27,%20%27weight%27,%20%27exchange.value%27).limit(5).run())
 
-### 9. Join with Alias
+#### Join with alias
 
-Use an alias to give joined buckets shorter names in your TypeScript code. The alias is resolved to the real bucket name in the generated Lua:
+Use an alias to give joined buckets shorter names. Aliases are resolved to real bucket names in the generated Lua:
 
 ```typescript
-const query = bucket('infobox_item')
+bucket('infobox_item')
     .join('exchange', 'ex', 'item_name', 'name')
     .select('item_name', 'ex.value', 'ex.limit')
     .where('ex.value', '>', 100000)
@@ -202,24 +276,44 @@ const query = bucket('infobox_item')
 
 [▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).join(%27exchange%27,%20%27infobox_item.item_name%27,%20%27exchange.name%27).select(%27item_name%27,%20%27exchange.value%27,%20%27exchange.limit%27).where({%20%27exchange.value%27,%20%27%3E%27,%20100000%20}).limit(10).run())
 
-### 10. Multiple Joins
+#### Multiple joins
 
-Join three buckets to combine item info, GE prices, and shop data.
+Join three buckets to combine item info, GE prices, and shop data:
 
 ```typescript
-const query = bucket('infobox_item')
+bucket('infobox_item')
     .join('exchange', 'item_name', 'name')
     .join('storeline', 'item_name', 'sold_item')
-    .select('item_name', 'weight', 'exchange.value', 'storeline.sold_by', 'storeline.store_sell_price')
+    .select(
+        'item_name', 'weight',
+        'exchange.value',
+        'storeline.sold_by', 'storeline.store_sell_price'
+    )
     .limit(5)
     .run();
 ```
 
 [▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).join(%27exchange%27,%20%27infobox_item.item_name%27,%20%27exchange.name%27).join(%27storeline%27,%20%27infobox_item.item_name%27,%20%27storeline.sold_item%27).select(%27item_name%27,%20%27weight%27,%20%27exchange.value%27,%20%27storeline.sold_by%27,%20%27storeline.store_sell_price%27).limit(5).run())
 
-### 11. Ordering, Pagination & first()
+---
 
-Sort results, paginate through pages, or grab just the first result:
+### Ordering & Pagination
+
+#### `.orderBy(field, direction)`
+
+Sort by a selected field. The field must appear in a prior `.select()` call.
+
+```typescript
+bucket('exchange')
+    .select('name', 'value')
+    .orderBy('value', 'desc')
+    .limit(10)
+    .run();
+```
+
+#### `.paginate(page, perPage)`
+
+A convenience helper that computes `.limit()` and `.offset()` from a 1-based page number:
 
 ```typescript
 const page2 = bucket('exchange')
@@ -228,7 +322,15 @@ const page2 = bucket('exchange')
     .orderBy('value', 'desc')
     .paginate(2, 25)
     .run();
+```
 
+[▶ Run page 2](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27value%27,%20%27%3E%27,%200%20}).orderBy(%27value%27,%20%27desc%27).limit(25).offset(25).run())
+
+#### `.first()`
+
+Shorthand for `.limit(1)` — grab just the top result:
+
+```typescript
 const top = bucket('exchange')
     .select('name', 'value')
     .orderBy('value', 'desc')
@@ -236,11 +338,13 @@ const top = bucket('exchange')
     .run();
 ```
 
-[▶ Run page 2](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where({%20%27value%27,%20%27%3E%27,%200%20}).orderBy(%27value%27,%20%27desc%27).limit(25).offset(25).run())
+---
 
-### 12. Conditional Queries with when()
+### Conditional Logic
 
-Build queries conditionally using `.when()`:
+#### `.when(condition, callback)`
+
+Conditionally apply query modifications based on runtime values. The callback only executes when the condition is `true`:
 
 ```typescript
 const isMembers = true;
@@ -251,17 +355,97 @@ const query = bucket('infobox_item')
     .run();
 ```
 
-### 13. Full Complex Query
+---
 
-Multi-join with aliases, mixed conditions, ordering, and pagination.
+### Reusing Queries
+
+#### `.clone()`
+
+Creates an independent deep copy of the builder. Changes to the clone don't affect the original:
 
 ```typescript
-import { bucket, Bucket } from 'osrs-wiki-bucket-builder';
+const base = bucket('exchange')
+    .select('name', 'value')
+    .where('value', '>', 0);
+
+const topExpensive = base.clone().orderBy('value', 'desc').limit(5);
+const topCheap = base.clone().orderBy('value', 'asc').limit(5);
+
+const expensiveQuery = topExpensive.run();
+const cheapQuery = topCheap.run();
+```
+
+---
+
+## Executing Queries
+
+### `.run()` — URL-encoded output (default)
+
+By default, `.run()` returns a URI-encoded string, ready to concatenate into a URL:
+
+```typescript
+const query = bucket('exchange').select('name', 'value').run();
+const url = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&query=${query}`;
+```
+
+### `.run({ encodeURI: false })` — raw Lua output
+
+Pass `{ encodeURI: false }` to get the raw Lua string for debugging or logging:
+
+```typescript
+const lua = bucket('exchange').select('name', 'value').run({ encodeURI: false });
+console.log(lua);
+// bucket('exchange').select('name', 'value').run()
+```
+
+### `.printSQL()` — raw Lua string (alias)
+
+Equivalent to `.run({ encodeURI: false })`, returns the raw Lua without encoding:
+
+```typescript
+const lua = bucket('exchange').select('name', 'value').printSQL();
+```
+
+### `BucketResponse` — response wrapper
+
+The `BucketResponse` class wraps the raw API response and provides convenient accessors:
+
+```typescript
+import { bucket, BucketResponse } from '@dava96/osrs-wiki-bucket-builder';
+
+const query = bucket('exchange')
+    .select('name', 'value')
+    .where('name', 'Abyssal whip')
+    .first()
+    .run();
+
+const url = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&query=${query}`;
+const raw = await fetch(url).then(r => r.json());
+const response = new BucketResponse(raw);
+
+console.log(response.results); // Array of matching rows
+console.log(response.first()); // First result or undefined
+console.log(response.query);   // The Lua query echoed by the API
+console.log(response.error);   // Error message if the query failed
+```
+
+---
+
+## Full Example
+
+Multi-join with aliases, mixed conditions, ordering, and pagination — all in one query:
+
+```typescript
+import { bucket, Bucket } from '@dava96/osrs-wiki-bucket-builder';
 
 const query = bucket('infobox_item')
     .join('exchange', 'ex', 'item_name', 'name')
     .join('storeline', 'shop', 'item_name', 'sold_item')
-    .select('item_name', 'weight', 'ex.value', 'ex.limit', 'shop.sold_by', 'shop.store_sell_price')
+    .select(
+        'item_name', 'weight',
+        'ex.value', 'ex.limit',
+        'shop.sold_by', 'shop.store_sell_price'
+    )
     .where('ex.value', '>', 1000)
     .whereNotNull('shop.sold_by')
     .orderBy('ex.value', 'desc')
@@ -273,30 +457,68 @@ const query = bucket('infobox_item')
 
 ---
 
-## Convenience Helpers
+## API Reference
 
-| Method | Equivalent To |
+| Method | Description |
 |---|---|
-| `.whereNot(field, value)` | `.where(field, '!=', value)` |
-| `.whereNull(field)` | `.where(field, Bucket.Null())` |
-| `.whereNotNull(field)` | `.where(field, '!=', Bucket.Null())` |
-| `.whereBetween(field, [a, b])` | `.where(field, '>=', a).where(field, '<=', b)` |
-| `.whereIn(field, [v1, v2])` | `.where(Bucket.Or([field, v1], [field, v2]))` |
-| `.first()` | `.limit(1)` |
-| `.paginate(page, perPage)` | `.limit(perPage).offset((page-1) * perPage)` |
-| `.when(cond, fn)` | Conditionally applies `fn` if `cond` is true |
-| `.clone()` | Creates an independent copy of the builder |
+| `bucket(name)` | Creates a new query builder for the given bucket |
+| `.select(...fields)` | Picks fields to retrieve. Supports dot-notation and wildcards |
+| `.where(field, value)` | Filters by equality |
+| `.where(field, op, value)` | Filters with a comparison operator |
+| `.where(...conditions)` | Adds multiple conditions (implicit AND) |
+| `.whereNot(field, value)` | Shorthand for `.where(field, '!=', value)` |
+| `.whereNull(field)` | Filters for NULL values |
+| `.whereNotNull(field)` | Filters for non-NULL values |
+| `.whereBetween(field, [a, b])` | Inclusive range filter |
+| `.whereIn(field, values)` | Matches any value from the list |
+| `.join(bucket, sourceField, targetField)` | Joins another bucket |
+| `.join(bucket, alias, sourceField, targetField)` | Joins with an alias |
+| `.orderBy(field, direction)` | Sorts by `'asc'` or `'desc'` |
+| `.limit(n)` | Sets max rows (1–5000, default 500) |
+| `.offset(n)` | Sets row offset for pagination |
+| `.paginate(page, perPage)` | Computes limit/offset from page number |
+| `.first()` | Shorthand for `.limit(1)` |
+| `.when(cond, fn)` | Conditionally applies `fn` when `cond` is true |
+| `.clone()` | Deep copies the builder |
+| `.run(options?)` | Returns the Lua query string (URI-encoded by default) |
+| `.printSQL()` | Returns the raw Lua query string |
+
+### Bucket Helpers
+
+| Helper | Description |
+|---|---|
+| `Bucket.And(...conditions)` | Logical AND |
+| `Bucket.Or(...conditions)` | Logical OR |
+| `Bucket.Not(condition)` | Logical NOT |
+| `Bucket.Null()` | Represents a NULL value |
+
+### Type Exports
+
+| Export | Purpose |
+|---|---|
+| `BucketName` | Union of all valid bucket names |
+| `BucketRegistry` | Maps bucket names to their field interfaces |
+| `BUCKET_FIELDS` | Runtime map of field names per bucket |
+| `BucketResponse<T>` | Response wrapper class |
+| `Operator` | Valid comparison operators |
+| `ScalarValue` | `string \| number \| boolean` |
+
+---
 
 ## Available Buckets
 
 Browse all available buckets and their fields on the Wiki:
 [Special:AllPages (Bucket namespace)](https://oldschool.runescape.wiki/w/Special:AllPages?from=&to=&namespace=9592)
 
-## API Reference
+## Resources
 
 - [Bucket Extension: Usage Guide](https://meta.weirdgloop.org/w/Extension:Bucket/Usage)
 - [Bucket Extension: API](https://meta.weirdgloop.org/w/Extension:Bucket/Api)
 - [Bucket Extension: Example Modules](https://meta.weirdgloop.org/w/Extension:Bucket/Example_modules)
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to set up the project, run tests, and submit changes.
 
 ## Development
 
