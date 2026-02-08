@@ -1,5 +1,10 @@
 # OSRS Wiki Bucket Builder
 
+[![npm](https://img.shields.io/npm/v/@dava96/osrs-wiki-bucket-builder)](https://www.npmjs.com/package/@dava96/osrs-wiki-bucket-builder)
+[![npm downloads](https://img.shields.io/npm/dw/@dava96/osrs-wiki-bucket-builder)](https://www.npmjs.com/package/@dava96/osrs-wiki-bucket-builder)
+[![license](https://img.shields.io/npm/l/@dava96/osrs-wiki-bucket-builder)](./LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/Dava96/osrs-wiki-bucket-builder)](https://github.com/Dava96/osrs-wiki-bucket-builder)
+
 A strictly typed, zero-dependency query builder for the [Old School RuneScape Wiki Bucket API](https://meta.weirdgloop.org/w/Extension:Bucket/Usage).
 
 Generates valid Lua query strings that can be executed via the Wiki's `action=bucket` API endpoint, with full TypeScript type safety derived from the Wiki's own schema definitions.
