@@ -1,40 +1,52 @@
 {
-    "name": "@dava96/osrs-wiki-bucket-builder",
-    "version": "1.0.0",
-    "main": "index.js",
-    "type": "module",
-    "scripts": {
-        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-        "lint": "eslint \"src/**/*.ts\"",
-        "format": "prettier --write \"src/**/*.{ts,json}\"",
-        "format:check": "prettier --check \"src/**/*.{ts,json}\"",
-        "pretest": "npm run lint",
-        "buckets": "npx tsx .\\scripts\\sync_buckets.ts"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "description": "",
-    "devDependencies": {
-        "@eslint/js": "^9.39.2",
-        "@jest/globals": "^30.2.0",
-        "@types/jest": "^30.0.0",
-        "@types/node": "^25.2.1",
-        "@typescript-eslint/eslint-plugin": "^8.54.0",
-        "@typescript-eslint/parser": "^8.54.0",
-        "axios": "^1.13.4",
-        "eslint": "^9.39.2",
-        "eslint-config-prettier": "^10.1.8",
-        "eslint-plugin-prettier": "^5.5.5",
-        "globals": "^17.3.0",
-        "jest": "^30.2.0",
-        "prettier": "^3.8.1",
-        "ts-jest": "^29.4.6",
-        "ts-node": "^10.9.2",
-        "typescript": "^5.9.3",
-        "typescript-eslint": "^8.54.0"
-    },
-    "dependencies": {
-        "@dava96/osrs-icons": "github:dava96/osrs-icons"
-    }
+  "name": "@dava96/osrs-wiki-bucket-builder",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "lint": "eslint \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.{ts,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,json}\"",
+    "pretest": "npm run lint",
+    "buckets": "npx tsx .\\scripts\\sync_buckets.ts",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@jest/globals": "^30.2.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "axios": "^1.13.4",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.3.0",
+    "husky": "^9.1.7",
+    "jest": "^30.2.0",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0"
+  },
+  "dependencies": {
+    "@dava96/osrs-icons": "github:dava96/osrs-icons"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "src/**/*.json": [
+      "prettier --write"
+    ]
+  }
 }
