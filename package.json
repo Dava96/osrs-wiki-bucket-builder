@@ -15,13 +15,30 @@
     "format:check": "prettier --check \"src/**/*.{ts,json}\"",
     "pretest": "npm run lint",
     "build": "tsc",
-    "buckets": "npx tsx .\\scripts\\sync_buckets.ts",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "prebuild": "npm run clean",
+    "buckets": "npx tsx ./scripts/sync_buckets.ts",
     "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "description": "A strictly typed, zero-dependency TypeScript query builder for the Old School RuneScape Wiki Bucket API.",
+  "keywords": [
+    "osrs",
+    "runescape",
+    "wiki",
+    "bucket",
+    "query-builder",
+    "typescript"
+  ],
+  "author": "Dava96",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dava96/osrs-wiki-bucket-builder.git"
+  },
+  "homepage": "https://dava96.github.io/osrs-wiki-bucket-builder",
+  "bugs": {
+    "url": "https://github.com/Dava96/osrs-wiki-bucket-builder/issues"
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@jest/globals": "^30.2.0",
@@ -42,9 +59,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0"
-  },
-  "dependencies": {
-    "@dava96/osrs-icons": "github:dava96/osrs-icons"
   },
   "lint-staged": {
     "src/**/*.ts": [
