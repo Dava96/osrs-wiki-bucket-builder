@@ -3,15 +3,21 @@ name: Publish to npm
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+    types: [closed]
 
 jobs:
   ci:
+    if: github.event_name == 'push'
     uses: ./.github/workflows/ci.yml
 
   version-bump:
     needs: ci
     runs-on: ubuntu-latest
-    if: "!startsWith(github.event.head_commit.message, 'release:')"
+    if: >-
+      github.event_name == 'push' &&
+      !startsWith(github.event.head_commit.message, 'release:')
     permissions:
       contents: write
       pull-requests: write
@@ -47,7 +53,10 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    if: startsWith(github.event.head_commit.message, 'release:')
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.title, 'release:')
     permissions:
       contents: read
       id-token: write
