@@ -10,8 +10,7 @@ const config = {
   collectCoverageFrom: [
     "src/**/*.ts",
     "!src/generated/**",
-    "!src/types.ts",
-    "!src/manual_verify.ts"
+    "!src/types.ts"
   ],
   coverageDirectory: "coverage",
   moduleNameMapper: {
