@@ -1,0 +1,67 @@
+name: Publish to npm
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  version-bump:
+    needs: ci
+    runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'release:')"
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Bump patch version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          IFS='.' read -ra PARTS <<< "$VERSION"
+          NEW="${PARTS[0]}.${PARTS[1]}.$((${PARTS[2]} + 1))"
+          npm version "$NEW" --no-git-tag-version
+          echo "NEW_VERSION=$NEW" >> "$GITHUB_ENV"
+
+      - name: Create release PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "release: v${{ env.NEW_VERSION }}"
+          title: "release: v${{ env.NEW_VERSION }}"
+          body: |
+            Automated version bump to `${{ env.NEW_VERSION }}`.
+
+            Merging this PR will publish to npm.
+          branch: release/v${{ env.NEW_VERSION }}
+          delete-branch: true
+          base: main
+
+  publish:
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.head_commit.message, 'release:')
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

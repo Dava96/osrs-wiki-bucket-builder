@@ -6,6 +6,14 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/** User-Agent sent with all Wiki API requests. */
+const USER_AGENT = '@dava96/osrs-wiki-bucket-builder (https://github.com/Dava96/osrs-wiki-bucket-builder)';
+
+/** Shared axios client with User-Agent header. */
+const apiClient = axios.create({
+    headers: { 'User-Agent': USER_AGENT },
+});
+
 /** URL for the OSRS Wiki API. */
 const API_URL = 'https://oldschool.runescape.wiki/api.php';
 
@@ -63,7 +71,7 @@ const TYPE_MAPPING: Record<string, 'string' | 'number' | 'boolean'> = {
  */
 async function fetchBucketList(): Promise<string[]> {
     console.log('Fetching bucket list...');
-    const response = await axios.get(API_URL, {
+    const response = await apiClient.get(API_URL, {
         params: {
             action: 'query',
             list: 'allpages',
@@ -84,7 +92,7 @@ async function fetchBucketList(): Promise<string[]> {
  */
 async function fetchBucketSchema(title: string): Promise<Record<string, RawBucketField> | null> {
     try {
-        const response = await axios.get(`${RAW_URL}${encodeURIComponent(title)}`, {
+        const response = await apiClient.get(`${RAW_URL}${encodeURIComponent(title)}`, {
             params: { action: 'raw' }
         });
 

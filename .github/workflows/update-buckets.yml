@@ -43,7 +43,7 @@ jobs:
           body: |
             This PR updates the bucket definitions based on the latest data from the OSRS Wiki.
             
-            Please review the changes to ensuring no breaking changes are introduced.
+            Please review the changes to ensure no breaking changes are introduced.
           branch: update-buckets
           delete-branch: true
           base: main

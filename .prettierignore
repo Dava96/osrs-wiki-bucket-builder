@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+coverage/
+src/generated/
+*.js
+*.js.map
+*.d.ts
+*.d.ts.map
+package-lock.json

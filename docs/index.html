@@ -1,6 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script type="module">
+  import { dragonScimitar, trout, emptyBucket, toDataUrl, iconNames, flipCursor } from 'https://unpkg.com/@dava96/osrs-icons/dist/esm/index.js';
+
+
+  const results = iconNames.filter(icon => icon.includes('bucket'));
+  console.log(results);
+  document.querySelector('body').style.cursor = await flipCursor(dragonScimitar);
+
+  const style = document.createElement('style');
+  style.textContent = `a, button, [role="button"], .run-link { cursor: ${trout}; }`;
+  document.head.appendChild(style);
+
+  const faviconUrl = toDataUrl(emptyBucket);
+  const link = document.createElement('link');
+  link.rel = 'icon';
+  link.href = faviconUrl;
+  document.head.appendChild(link);
+
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OSRS Wiki Bucket Builder — Documentation</title>
@@ -26,6 +45,7 @@
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
+
         }
 
         .container {
@@ -333,7 +353,8 @@ const query = bucket('infobox_item')
             <a href="https://meta.weirdgloop.org/w/Extension:Bucket/Usage" target="_blank" rel="noopener">Bucket Usage Guide</a> ·
             <a href="https://meta.weirdgloop.org/w/Extension:Bucket/Api" target="_blank" rel="noopener">Bucket API</a> ·
             <a href="https://oldschool.runescape.wiki/w/Special:AllPages?from=&to=&namespace=9592" target="_blank" rel="noopener">Browse All Buckets</a> ·
-            <a href="https://github.com/Dava96/osrs-wiki-bucket-builder" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/Dava96/osrs-wiki-bucket-builder" target="_blank" rel="noopener">GitHub</a> ·
+            <a href="https://github.com/Dava96/osrs-icons" target="_blank" rel="noopener">Icons Provided by osrs-icons</a>
         </p>
     </div>
 
