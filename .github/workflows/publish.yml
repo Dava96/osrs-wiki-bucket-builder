@@ -29,6 +29,7 @@ jobs:
           NEW="${PARTS[0]}.${PARTS[1]}.$((${PARTS[2]} + 1))"
           npm version "$NEW" --no-git-tag-version
           echo "NEW_VERSION=$NEW" >> "$GITHUB_ENV"
+          echo "TIMESTAMP=$(date +'%Y%m%d-%H%M%S')" >> "$GITHUB_ENV"
 
       - name: Create release PR
         uses: peter-evans/create-pull-request@v6
@@ -40,7 +41,7 @@ jobs:
             Automated version bump to `${{ env.NEW_VERSION }}`.
 
             Merging this PR will publish to npm.
-          branch: release/v${{ env.NEW_VERSION }}
+          branch: release/v${{ env.NEW_VERSION }}-${{ env.TIMESTAMP }}
           delete-branch: true
           base: main
 
@@ -58,8 +59,10 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build
 
       - name: Publish to npm
         run: npm publish --provenance --access public
