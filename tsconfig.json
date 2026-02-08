@@ -33,10 +33,10 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
     "skipLibCheck": true
   },
   "exclude": [
-    "scripts"
+    "scripts",
+    "src/tests"
   ]
 }
