@@ -25,6 +25,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Restore bucket cache
+        uses: actions/cache@v4
+        with:
+          path: scripts/.bucket_cache.json
+          key: bucket-schemas-${{ hashFiles('src/generated/definitions.ts') }}
+          restore-keys: bucket-schemas-
+
       - name: Sync Buckets
         run: npm run buckets
 
