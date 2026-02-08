@@ -326,6 +326,7 @@ console.log(data.bucket);</code></pre>
         ['name', 'Steel axe']
     ))
     .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.Or({%20%27name%27,%20%27Bronze%20axe%27%20},%20{%20%27name%27,%20%27Iron%20axe%27%20},%20{%20%27name%27,%20%27Steel%20axe%27%20})).run()" target="_blank" rel="noopener">▶ Run this query</a>
 
         <h4><code>Bucket.And(...)</code> — all conditions must match</h4>
         <pre><code class="language-typescript">bucket('exchange')
@@ -335,18 +336,21 @@ console.log(data.bucket);</code></pre>
         ['value', '<', 50000]
     ))
     .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.And({%20%27value%27,%20%27%3E%27,%201000%20},%20{%20%27value%27,%20%27%3C%27,%2050000%20})).run()" target="_blank" rel="noopener">▶ Run this query</a>
 
         <h4><code>Bucket.Not(...)</code> — negate a condition</h4>
         <pre><code class="language-typescript">bucket('exchange')
     .select('name', 'value')
     .where(Bucket.Not(['name', 'Coins']))
     .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.Not({%20%27name%27,%20%27Coins%27%20})).run()" target="_blank" rel="noopener">▶ Run this query</a>
 
         <h4><code>Bucket.Null()</code> — represents a null value</h4>
         <pre><code class="language-typescript">bucket('infobox_item')
     .select('item_name', 'weight')
     .where('weight', '!=', Bucket.Null())
     .run();</code></pre>
+        <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).select(%27item_name%27,%20%27weight%27).where({%20%27weight%27,%20%27!=%27,%20bucket.Null()%20}).run()" target="_blank" rel="noopener">▶ Run this query</a>
 
         <h3>Joining Buckets</h3>
         <p>Join two or more buckets to combine data from different sources, similar to a SQL JOIN.</p>

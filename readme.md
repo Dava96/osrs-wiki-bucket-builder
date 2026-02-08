@@ -205,6 +205,8 @@ bucket('exchange')
     .run();
 ```
 
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.Or({%20%27name%27,%20%27Bronze%20axe%27%20},%20{%20%27name%27,%20%27Iron%20axe%27%20},%20{%20%27name%27,%20%27Steel%20axe%27%20})).run())
+
 #### `Bucket.And(...)` — all conditions must match
 
 ```typescript
@@ -217,6 +219,8 @@ bucket('exchange')
     .run();
 ```
 
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.And({%20%27value%27,%20%27%3E%27,%201000%20},%20{%20%27value%27,%20%27%3C%27,%2050000%20})).run())
+
 #### `Bucket.Not(...)` — negate a condition
 
 ```typescript
@@ -226,6 +230,8 @@ bucket('exchange')
     .run();
 ```
 
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27name%27,%20%27value%27).where(bucket.Not({%20%27name%27,%20%27Coins%27%20})).run())
+
 #### `Bucket.Null()` — represents a null value
 
 ```typescript
@@ -234,6 +240,8 @@ bucket('infobox_item')
     .where('weight', '!=', Bucket.Null())
     .run();
 ```
+
+[▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27infobox_item%27).select(%27item_name%27,%20%27weight%27).where({%20%27weight%27,%20%27!=%27,%20bucket.Null()%20}).run())
 
 ---
 
