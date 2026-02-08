@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -33,17 +33,22 @@ jobs:
         run: |
           git diff --exit-code || echo "changes=true" >> $GITHUB_OUTPUT
 
+      - name: Generate branch timestamp
+        if: steps.git-check.outputs.changes == 'true'
+        id: timestamp
+        run: echo "value=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
       - name: Create Pull Request
         if: steps.git-check.outputs.changes == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: update bucket definitions"
-          title: "chore: update bucket definitions"
+          title: "chore: update bucket definitions (${{ steps.timestamp.outputs.value }})"
           body: |
             This PR updates the bucket definitions based on the latest data from the OSRS Wiki.
-            
+
             Please review the changes to ensure no breaking changes are introduced.
-          branch: update-buckets
+          branch: chore/update-buckets-${{ steps.timestamp.outputs.value }}
           delete-branch: true
           base: main
