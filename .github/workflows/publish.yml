@@ -17,7 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     if: >-
       github.event_name == 'push' &&
-      !startsWith(github.event.head_commit.message, 'release:')
+      !startsWith(github.event.head_commit.message, 'release:') &&
+      !contains(github.event.head_commit.message, 'release/') &&
+      !contains(github.event.head_commit.message, 'chore/update-buckets')
     permissions:
       contents: write
       pull-requests: write
