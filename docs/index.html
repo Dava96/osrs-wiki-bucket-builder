@@ -224,17 +224,21 @@
         <!-- QUICK START                                                      -->
         <!-- ================================================================ -->
         <h2>Quick Start</h2>
-        <pre><code class="language-typescript">import { bucket } from '@dava96/osrs-wiki-bucket-builder';
+        <pre><code class="language-typescript">import { bucket, BucketResponse } from '@dava96/osrs-wiki-bucket-builder';
+import type { InferBucketResult } from '@dava96/osrs-wiki-bucket-builder';
 
 const query = bucket('exchange')
     .select('id', 'name', 'value')
-    .where('name', 'Abyssal whip')
-    .run();
+    .where('name', 'Abyssal whip');
 
-// query is URL-encoded, ready for fetch
-const url = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&query=${query}`;
-const data = await fetch(url).then(r => r.json());
-console.log(data.bucket);</code></pre>
+// .toUrl() generates the full API URL, ready to fetch
+const raw = await fetch(query.toUrl()).then(r => r.json());
+
+// BucketResponse.from() infers the result type from the query
+const response = BucketResponse.from(query, raw);
+const whip = response.first();
+console.log(whip?.name);  // ✅ typed as string
+console.log(whip?.value); // ✅ typed as number</code></pre>
         <a class="run-link" href="https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27id%27,%20%27name%27,%20%27value%27).where({%20%27name%27,%20%27Abyssal%20whip%27%20}).run()" target="_blank" rel="noopener">▶ Run this query</a>
 
         <!-- ================================================================ -->
@@ -449,15 +453,41 @@ const url = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&
         <p>Wraps the raw API response with convenient accessors:</p>
         <pre><code class="language-typescript">import { bucket, BucketResponse } from '@dava96/osrs-wiki-bucket-builder';
 
-const query = bucket('exchange').select('name', 'value').first().run();
-const url = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&query=${query}`;
-const raw = await fetch(url).then(r => r.json());
+const query = bucket('exchange').select('name', 'value').first();
+const raw = await fetch(query.toUrl()).then(r => r.json());
 const response = new BucketResponse(raw);
 
 response.results  // Array of matching rows
 response.first()  // First result or undefined
 response.query    // The Lua query echoed by the API
 response.error    // Error message if the query failed</code></pre>
+
+        <h4><code>BucketResponse.from()</code> — typed responses from queries</h4>
+        <p>Automatically infers the result type from the query builder — no manual type parameter needed:</p>
+        <pre><code class="language-typescript">const query = bucket('exchange').select('name', 'value');
+const raw = await fetch(query.toUrl()).then(r => r.json());
+const response = BucketResponse.from(query, raw);
+
+response.first()?.name;  // ✅ typed as string
+response.first()?.value; // ✅ typed as number</code></pre>
+
+        <h4><code>InferBucketResult</code> — extract the result type</h4>
+        <p>Use <code>InferBucketResult&lt;typeof query&gt;</code> to extract the inferred row type without executing the query:</p>
+        <pre><code class="language-typescript">import type { InferBucketResult } from '@dava96/osrs-wiki-bucket-builder';
+
+const query = bucket('exchange').select('id', 'name', 'value');
+type ExchangeRow = InferBucketResult&lt;typeof query&gt;;
+// { id: number; name: string; value: number; page_name: string; page_name_sub: string }</code></pre>
+
+        <h4><code>.toUrl()</code> — generate the full API URL</h4>
+        <p>Generates the complete Wiki API URL, ready to pass to <code>fetch()</code>:</p>
+        <pre><code class="language-typescript">const url = bucket('exchange')
+    .select('name', 'value')
+    .where('value', '>', 100000)
+    .limit(10)
+    .toUrl();
+
+const data = await fetch(url).then(r => r.json());</code></pre>
 
         <hr>
 
@@ -514,6 +544,7 @@ const query = bucket('infobox_item')
                 <tr><td><code>.clone()</code></td><td>Deep copies the builder</td></tr>
                 <tr><td><code>.run(options?)</code></td><td>Returns the Lua query string (URI-encoded by default)</td></tr>
                 <tr><td><code>.printSQL()</code></td><td>Returns the raw Lua query string</td></tr>
+                <tr><td><code>.toUrl()</code></td><td>Generates the full Wiki API URL, ready to <code>fetch()</code></td></tr>
             </tbody>
         </table>
 
