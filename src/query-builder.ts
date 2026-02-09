@@ -1,5 +1,6 @@
-import type { BucketName } from './generated/definitions.js';
+import type { BucketName, BucketRegistry } from './generated/definitions.js';
 import { BUCKET_FIELDS } from './generated/definitions.js';
+import type { BucketMetaFields, SelectResult, ValidField } from './response-types.js';
 import {
     Bucket,
     QUERY_DEFAULTS,
@@ -10,16 +11,46 @@ import {
     type ScalarValue,
 } from './types.js';
 
+/** Base URL for the OSRS Wiki Bucket API. */
+const BUCKET_API_BASE = 'https://oldschool.runescape.wiki/api.php';
+
 /**
  * A type-safe query builder for OSRS Wiki Buckets.
  *
- * Uses recursive generics to track joined buckets and available fields.
+ * Uses recursive generics to track joined buckets, available fields, and the
+ * inferred result shape. As you chain `.select()`, `.join()`, and `.where()`,
+ * the builder accumulates type information so you get full autocomplete on
+ * field names and automatically inferred response types.
  *
  * @template TMain The name of the primary bucket.
- * @template TJoined A union of alias names or bucket names that have been joined.
- * @template TSelected The shape of the selected data so far.
+ * @template TJoinMap A record mapping alias/bucket names to their target bucket names.
+ * @template TSelected The accumulated result shape (defaults to the full bucket type).
+ * @template THasSelected Whether `.select()` has been called (used to switch from
+ *   full-type default to narrowed selection).
+ *
+ * @example
+ * ```typescript
+ * import { bucket, InferBucketResult } from '@dava96/osrs-wiki-bucket-builder';
+ *
+ * const query = bucket('exchange').select('id', 'name', 'value');
+ * type Row = InferBucketResult<typeof query>;
+ * // Row = { id: number; name: string; value: number; page_name: string; page_name_sub: string }
+ * ```
  */
-export class BucketQueryBuilder<TMain extends BucketName, TJoined extends string = never, TSelected = object> {
+export class BucketQueryBuilder<
+    TMain extends BucketName,
+    TJoinMap extends Record<string, BucketName> = Record<string, never>,
+    TSelected = BucketRegistry[TMain] & BucketMetaFields,
+    THasSelected extends boolean = false,
+> {
+    /**
+     * Type-level accessor for the inferred result shape.
+     *
+     * This property does not exist at runtime — it is a compile-time brand
+     * used by {@link InferBucketResult} to extract the result type.
+     */
+    declare readonly __resultType: TSelected;
+
     private readonly mainBucket: TMain;
     private joins: Array<{ target: string; alias?: string; onSource: string; onTarget: string }> = [];
     private selections: string[] = [];
@@ -35,68 +66,129 @@ export class BucketQueryBuilder<TMain extends BucketName, TJoined extends string
     }
 
     /**
-     * Selects fields to retrieve.
-     * Supports dot notation for joined buckets (e.g. `shop.price`) and wildcards (`*`, `shop.*`).
+     * Selects fields to retrieve from the query results.
      *
-     * @param fields The fields to select.
+     * Supports plain field names, dot notation for joined buckets
+     * (e.g. `'exchange.value'`), and wildcards (`'*'`, `'exchange.*'`).
+     *
+     * Multiple `.select()` calls accumulate — they merge fields rather
+     * than replacing previous selections.
+     *
+     * @param fields - One or more field names to include in the result.
+     *   Your IDE will autocomplete valid field names based on the bucket
+     *   and any active joins.
+     *
+     * @example
+     * ```typescript
+     * bucket('exchange').select('id', 'name');          // plain fields
+     * bucket('exchange').select('*');                    // all fields
+     * query.join('exchange', 'ex', 'item_name', 'name')
+     *      .select('item_name', 'ex.value', 'ex.limit'); // joined fields
+     * ```
      */
-    select<F extends string>(...fields: F[]): BucketQueryBuilder<TMain, TJoined, TSelected & { [K in F]: unknown }> {
+    select<F extends ValidField<TMain, TJoinMap>>(
+        ...fields: F[]
+    ): BucketQueryBuilder<
+        TMain,
+        TJoinMap,
+        THasSelected extends true
+            ? TSelected & SelectResult<TMain, TJoinMap, F>
+            : SelectResult<TMain, TJoinMap, F> & BucketMetaFields,
+        true
+    > {
         this.selections.push(...fields);
-        return this as unknown as BucketQueryBuilder<TMain, TJoined, TSelected & { [K in F]: unknown }>;
+        return this as unknown as BucketQueryBuilder<
+            TMain,
+            TJoinMap,
+            THasSelected extends true
+                ? TSelected & SelectResult<TMain, TJoinMap, F>
+                : SelectResult<TMain, TJoinMap, F> & BucketMetaFields,
+            true
+        >;
     }
 
     /**
      * Joins another bucket to the query.
      *
-     * @param targetBucket The name of the bucket to join.
-     * @param sourceField The field in the current result set to join ON.
-     * @param targetField The field in the target bucket to join ON.
+     * The join is a LEFT JOIN — main bucket rows always appear, but joined
+     * fields may be absent when there is no matching row in the target bucket
+     * (e.g. untradeable items have no exchange entry).
+     *
+     * After joining, dot-notation fields like `'exchange.value'` become
+     * available in `.select()` and `.where()`.
+     *
+     * @param targetBucket - The name of the bucket to join.
+     * @param sourceField - The field in the current result set to join ON.
+     * @param targetField - The field in the target bucket to join ON.
+     *
+     * @example
+     * ```typescript
+     * bucket('infobox_item')
+     *   .join('exchange', 'item_name', 'name')
+     *   .select('item_name', 'exchange.value');
+     * ```
      */
     join<TTarget extends BucketName>(
         targetBucket: TTarget,
         sourceField: string,
         targetField: string,
-    ): BucketQueryBuilder<TMain, TJoined | TTarget, TSelected>;
+    ): BucketQueryBuilder<TMain, TJoinMap & Record<TTarget, TTarget>, TSelected, THasSelected>;
 
     /**
      * Joins another bucket with an alias.
      *
-     * @param targetBucket The name of the bucket to join.
-     * @param alias An alias for this bucket to use in select/where.
-     * @param sourceField The field in the current result set to join ON.
-     * @param targetField The field in the target bucket to join ON.
+     * Aliases let you give joined buckets shorter names for use in
+     * `.select()` and `.where()`. The alias is resolved to the real
+     * bucket name in the generated Lua query.
+     *
+     * @param targetBucket - The name of the bucket to join.
+     * @param alias - An alias for this bucket to use in select/where.
+     * @param sourceField - The field in the current result set to join ON.
+     * @param targetField - The field in the target bucket to join ON.
+     *
+     * @example
+     * ```typescript
+     * bucket('infobox_item')
+     *   .join('exchange', 'ex', 'item_name', 'name')
+     *   .select('item_name', 'ex.value', 'ex.limit');
+     * ```
      */
     join<TTarget extends BucketName, TAlias extends string>(
         targetBucket: TTarget,
         alias: TAlias,
         sourceField: string,
         targetField: string,
-    ): BucketQueryBuilder<TMain, TJoined | TAlias, TSelected>;
+    ): BucketQueryBuilder<TMain, TJoinMap & Record<TAlias, TTarget>, TSelected, THasSelected>;
 
-    join(targetBucket: BucketName, arg2: string, arg3: string, arg4?: string): this {
+    join(
+        targetBucket: BucketName,
+        aliasOrSourceField: string,
+        sourceOrTargetField: string,
+        maybeTargetField?: string,
+    ): BucketQueryBuilder<TMain, Record<string, BucketName>, TSelected, THasSelected> {
         let alias: string | undefined;
         let sourceField: string;
         let targetField: string;
 
-        if (arg4) {
-            alias = arg2;
-            sourceField = arg3;
-            targetField = arg4;
+        if (maybeTargetField) {
+            alias = aliasOrSourceField;
+            sourceField = sourceOrTargetField;
+            targetField = maybeTargetField;
         } else {
-            sourceField = arg2;
-            targetField = arg3;
+            sourceField = aliasOrSourceField;
+            targetField = sourceOrTargetField;
         }
 
-        const joinObj: { target: string; alias?: string; onSource: string; onTarget: string } = {
+        const joinEntry: { target: string; alias?: string; onSource: string; onTarget: string } = {
             target: targetBucket,
             onSource: sourceField,
             onTarget: targetField,
         };
         if (alias) {
-            joinObj.alias = alias;
+            joinEntry.alias = alias;
         }
 
-        this.joins.push(joinObj);
+        this.joins.push(joinEntry);
 
         if (alias) {
             this.aliasMap[alias] = targetBucket;
@@ -104,25 +196,25 @@ export class BucketQueryBuilder<TMain extends BucketName, TJoined extends string
             this.aliasMap[targetBucket] = targetBucket;
         }
 
-        return this;
+        return this as unknown as BucketQueryBuilder<TMain, Record<string, BucketName>, TSelected, THasSelected>;
     }
 
     /**
      * Filters results by field equality.
      *
-     * @param field The field to filter on.
-     * @param value The value to match (implies `=` operator).
+     * @param field - The field to filter on. Supports autocomplete for valid field names.
+     * @param value - The value to match (implies `=` operator).
      */
-    where(field: string, value: ScalarValue | BucketHelperCondition): this;
+    where(field: ValidField<TMain, TJoinMap>, value: ScalarValue | BucketHelperCondition): this;
 
     /**
      * Filters results with an explicit operator.
      *
-     * @param field The field to filter on.
-     * @param op The comparison operator.
-     * @param value The value to compare against.
+     * @param field - The field to filter on. Supports autocomplete for valid field names.
+     * @param op - The comparison operator (`=`, `!=`, `>`, `<`, `>=`, `<=`).
+     * @param value - The value to compare against.
      */
-    where(field: string, op: Operator, value: ScalarValue | BucketHelperCondition): this;
+    where(field: ValidField<TMain, TJoinMap>, op: Operator, value: ScalarValue | BucketHelperCondition): this;
 
     /**
      * Adds multiple conditions (implicitly AND).
@@ -159,29 +251,39 @@ export class BucketQueryBuilder<TMain extends BucketName, TJoined extends string
 
     /**
      * Shorthand for `where(field, '!=', value)`.
+     *
+     * @param field - The field to exclude matches on.
+     * @param value - The value to exclude.
      */
-    whereNot(field: string, value: ScalarValue): this {
+    whereNot(field: ValidField<TMain, TJoinMap>, value: ScalarValue): this {
         return this.where(field, '!=', value);
     }
 
     /**
      * Filters for rows where field is NULL.
+     *
+     * @param field - The field to check for NULL.
      */
-    whereNull(field: string): this {
+    whereNull(field: ValidField<TMain, TJoinMap>): this {
         return this.where(field, Bucket.Null());
     }
 
     /**
      * Filters for rows where field is NOT NULL.
+     *
+     * @param field - The field to check for NOT NULL.
      */
-    whereNotNull(field: string): this {
+    whereNotNull(field: ValidField<TMain, TJoinMap>): this {
         return this.where(field, '!=', Bucket.Null());
     }
 
     /**
      * Filters for rows where field is between two values (inclusive).
+     *
+     * @param field - The field to filter on.
+     * @param range - A tuple of `[min, max]` values (inclusive on both ends).
      */
-    whereBetween(field: string, range: [ScalarValue, ScalarValue]): this {
+    whereBetween(field: ValidField<TMain, TJoinMap>, range: [ScalarValue, ScalarValue]): this {
         return this.where(field, '>=', range[0]).where(field, '<=', range[1]);
     }
 
@@ -200,9 +302,17 @@ export class BucketQueryBuilder<TMain extends BucketName, TJoined extends string
 
     /**
      * Filters for rows where field matches any of the given values.
-     * Generates `Bucket.Or({field, v1}, {field, v2}, ...)`.
+     * Generates `Bucket.Or({field, v1}, {field, v2}, ...)` internally.
+     *
+     * @param field - The field to match against.
+     * @param values - An array of values; rows matching any value are included.
+     *
+     * @example
+     * ```typescript
+     * bucket('exchange').whereIn('name', ['Bronze axe', 'Iron axe', 'Steel axe']);
+     * ```
      */
-    whereIn(field: string, values: ScalarValue[]): this {
+    whereIn(field: ValidField<TMain, TJoinMap>, values: ScalarValue[]): this {
         const conditions = values.map((v) => [field, v] as BucketCondition);
         this.whereClauses.push(Bucket.Or(...conditions));
         return this;
@@ -247,10 +357,20 @@ export class BucketQueryBuilder<TMain extends BucketName, TJoined extends string
     }
 
     /**
-     * Creates an independent copy of this query builder's state.
+     * Creates an independent deep copy of this query builder's state.
+     *
+     * Useful for building query variants from a shared base without
+     * mutating the original.
+     *
+     * @example
+     * ```typescript
+     * const base = bucket('exchange').select('name', 'value').where('value', '>', 0);
+     * const expensive = base.clone().orderBy('value', 'desc').limit(5);
+     * const cheap = base.clone().orderBy('value', 'asc').limit(5);
+     * ```
      */
-    clone(): BucketQueryBuilder<TMain, TJoined, TSelected> {
-        const clone = new BucketQueryBuilder<TMain, TJoined, TSelected>(this.mainBucket);
+    clone(): BucketQueryBuilder<TMain, TJoinMap, TSelected, THasSelected> {
+        const clone = new BucketQueryBuilder<TMain, TJoinMap, TSelected, THasSelected>(this.mainBucket);
         clone.aliasMap = { ...this.aliasMap };
         clone.joins = [...this.joins];
         clone.selections = [...this.selections];
@@ -469,21 +589,61 @@ export class BucketQueryBuilder<TMain extends BucketName, TJoined extends string
     /**
      * Executes the query and returns the Lua query string.
      *
-     * @param options Configuration options.
-     * @param options.encodeURI Whether to URI encode the output (default: true).
-     *                          Set to `false` if you need the raw Lua string for debugging.
+     * @param options - Configuration options.
+     * @param options.encodeURI - Whether to URI encode the output (default: true).
+     *                            Set to `false` if you need the raw Lua string for debugging.
+     *
+     * @example
+     * ```typescript
+     * const encoded = bucket('exchange').select('name').run();                 // URL-encoded
+     * const raw = bucket('exchange').select('name').run({ encodeURI: false }); // raw Lua
+     * ```
      */
     run(options: { encodeURI?: boolean } = {}): string {
         const sql = this.printSQL();
         const shouldEncode = options.encodeURI ?? true;
         return shouldEncode ? encodeURIComponent(sql) : sql;
     }
+
+    /**
+     * Generates the full OSRS Wiki Bucket API URL, ready for `fetch()`.
+     *
+     * This is a convenience method that calls `.run()` internally and
+     * wraps the result in the standard API URL template. The query is
+     * always URI-encoded.
+     *
+     * @returns The complete API URL as a string.
+     *
+     * @example
+     * ```typescript
+     * const query = bucket('exchange').select('name', 'value').where('name', 'Abyssal whip');
+     * const data = await fetch(query.toUrl()).then(r => r.json());
+     * ```
+     */
+    toUrl(): string {
+        const encodedQuery = this.run();
+        return `${BUCKET_API_BASE}?action=bucket&format=json&query=${encodedQuery}`;
+    }
 }
 
 /**
  * Creates a new query builder for the given bucket.
  *
- * @param bucket The name of the bucket to query.
+ * This is the main entry point for building queries. The returned builder
+ * provides autocomplete for field names and tracks the result type as you
+ * chain methods.
+ *
+ * @param bucket - The name of the bucket to query.
+ *
+ * @example
+ * ```typescript
+ * import { bucket } from '@dava96/osrs-wiki-bucket-builder';
+ *
+ * const query = bucket('exchange')
+ *   .select('id', 'name', 'value')
+ *   .where('name', 'Abyssal whip')
+ *   .run();
+ * ```
  */
 export function bucket<K extends BucketName>(bucket: K): BucketQueryBuilder<K> {
     return new BucketQueryBuilder(bucket);

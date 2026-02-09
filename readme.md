@@ -12,6 +12,7 @@ Generates valid Lua query strings that can be executed via the Wiki's `action=bu
 ## Features
 
 - **Strict Typing** — TypeScript definitions generated from `Special:AllPages` ensure only valid bucket names and fields compile.
+- **Inferred Response Types** — `.select()`, `.join()`, and `.where()` constrain fields to valid names and accumulate a result type that precisely describes each row.
 - **Fluent API** — Chain `.select()`, `.join()`, `.where()`, `.orderBy()`, `.limit()`, `.offset()`.
 - **Join Aliases** — Multi-bucket joins with alias support and dot-notation (`shop.price`).
 - **Wildcard Expansion** — Client-side `*` and `alias.*` expansion to strict field lists.
@@ -26,18 +27,21 @@ npm install @dava96/osrs-wiki-bucket-builder
 ## Quick Start
 
 ```typescript
-import { bucket } from '@dava96/osrs-wiki-bucket-builder';
+import { bucket, BucketResponse } from '@dava96/osrs-wiki-bucket-builder';
+import type { InferBucketResult } from '@dava96/osrs-wiki-bucket-builder';
 
 const query = bucket('exchange')
     .select('id', 'name', 'value')
-    .where('name', 'Abyssal whip')
-    .run();
+    .where('name', 'Abyssal whip');
 
-// query is a URL-encoded Lua string, ready to use in a fetch call
-const url = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&query=${query}`;
-const response = await fetch(url);
-const data = await response.json();
-console.log(data.bucket); // [{ id: ..., name: 'Abyssal whip', value: ... }]
+// .toUrl() generates the full API URL, ready to fetch
+const raw = await fetch(query.toUrl()).then(r => r.json());
+
+// BucketResponse.from() infers the result type from the query
+const response = BucketResponse.from(query, raw);
+const whip = response.first();
+console.log(whip?.name);  // ✅ typed as string
+console.log(whip?.value); // ✅ typed as number
 ```
 
 [▶ Run this query](https://oldschool.runescape.wiki/api.php?action=bucket&query=bucket(%27exchange%27).select(%27id%27,%20%27name%27,%20%27value%27).where({%20%27name%27,%20%27Abyssal%20whip%27%20}).run())
@@ -421,17 +425,54 @@ import { bucket, BucketResponse } from '@dava96/osrs-wiki-bucket-builder';
 const query = bucket('exchange')
     .select('name', 'value')
     .where('name', 'Abyssal whip')
-    .first()
-    .run();
+    .first();
 
-const url = `https://oldschool.runescape.wiki/api.php?action=bucket&format=json&query=${query}`;
-const raw = await fetch(url).then(r => r.json());
+const raw = await fetch(query.toUrl()).then(r => r.json());
 const response = new BucketResponse(raw);
 
 console.log(response.results); // Array of matching rows
 console.log(response.first()); // First result or undefined
 console.log(response.query);   // The Lua query echoed by the API
 console.log(response.error);   // Error message if the query failed
+```
+
+#### `BucketResponse.from()` — typed responses from queries
+
+Use `BucketResponse.from(query, raw)` to automatically infer the result type from the query builder. No manual type parameter required:
+
+```typescript
+const query = bucket('exchange').select('name', 'value');
+const raw = await fetch(query.toUrl()).then(r => r.json());
+const response = BucketResponse.from(query, raw);
+
+response.first()?.name;  // ✅ typed as string
+response.first()?.value; // ✅ typed as number
+```
+
+### `InferBucketResult` — extract the result type
+
+Use `InferBucketResult<typeof query>` to extract the inferred row type without executing the query. Useful for typing variables, function parameters, or API response handlers:
+
+```typescript
+import type { InferBucketResult } from '@dava96/osrs-wiki-bucket-builder';
+
+const query = bucket('exchange').select('id', 'name', 'value');
+type ExchangeRow = InferBucketResult<typeof query>;
+// ExchangeRow = { id: number; name: string; value: number; page_name: string; page_name_sub: string }
+```
+
+### `.toUrl()` — generate the full API URL
+
+Generates the complete Wiki API URL with all query parameters, ready to pass to `fetch()`:
+
+```typescript
+const url = bucket('exchange')
+    .select('name', 'value')
+    .where('value', '>', 100000)
+    .limit(10)
+    .toUrl();
+
+const data = await fetch(url).then(r => r.json());
 ```
 
 ---
@@ -487,6 +528,7 @@ const query = bucket('infobox_item')
 | `.clone()` | Deep copies the builder |
 | `.run(options?)` | Returns the Lua query string (URI-encoded by default) |
 | `.printSQL()` | Returns the raw Lua query string |
+| `.toUrl()` | Generates the full Wiki API URL, ready to `fetch()` |
 
 ### Bucket Helpers
 
@@ -505,6 +547,9 @@ const query = bucket('infobox_item')
 | `BucketRegistry` | Maps bucket names to their field interfaces |
 | `BUCKET_FIELDS` | Runtime map of field names per bucket |
 | `BucketResponse<T>` | Response wrapper class |
+| `BucketResponse.from()` | Creates a typed response from a query builder |
+| `InferBucketResult<T>` | Extracts the inferred row type from a query |
+| `BucketMetaFields` | The `page_name` and `page_name_sub` fields present on every row |
 | `Operator` | Valid comparison operators |
 | `ScalarValue` | `string \| number \| boolean` |
 

@@ -75,9 +75,51 @@ export interface BucketApiResponse<T = unknown> {
 }
 
 /**
- * Helper class to manipulate/view the response.
+ * Helper class to manipulate and access bucket API response data.
+ *
+ * Can be instantiated directly with a generic type, or use the static
+ * {@link BucketResponse.from} factory to automatically infer the type
+ * from a query builder instance.
+ *
+ * @template T The expected shape of each result row.
+ *
+ * @example
+ * ```typescript
+ * // Option 1: Manual type parameter
+ * const response = new BucketResponse<{ id: number; name: string }>(raw);
+ *
+ * // Option 2: Automatic inference via .from()
+ * const query = bucket('exchange').select('id', 'name');
+ * const response = BucketResponse.from(query, raw);
+ * response.first()?.name; // ✅ typed as string
+ * ```
  */
 export class BucketResponse<T = unknown> {
+    /**
+     * Creates a typed `BucketResponse` by inferring the result type
+     * from a `BucketQueryBuilder` instance.
+     *
+     * This eliminates the need to manually specify `InferBucketResult<typeof query>`
+     * — the type flows automatically from the builder's accumulated generics.
+     *
+     * @param _query - The query builder instance (used only for type inference, not called at runtime).
+     * @param raw - The raw JSON response from the Wiki API.
+     *
+     * @example
+     * ```typescript
+     * const query = bucket('exchange').select('name', 'value').where('name', 'Abyssal whip');
+     * const raw = await fetch(query.toUrl()).then(r => r.json());
+     * const response = BucketResponse.from(query, raw);
+     * response.first()?.value; // ✅ typed as number
+     * ```
+     */
+    static from<Q extends { readonly __resultType: unknown }>(
+        _query: Q,
+        raw: BucketApiResponse<Q['__resultType']>,
+    ): BucketResponse<Q['__resultType']> {
+        return new BucketResponse(raw);
+    }
+
     constructor(private readonly raw: BucketApiResponse<T>) {}
 
     /**
