@@ -1,0 +1,4 @@
+{
+    "bucketQuery": "bucket('exchange').select('id', 'name', 'value').where({ 'name', 'Abyssal whip' }).run()",
+    "bucket": [{ "id": 4151, "name": "Abyssal whip", "value": 120001 }]
+}

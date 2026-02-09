@@ -1,0 +1,4 @@
+{
+    "bucketQuery": "bucket('invalid_bucket').run()",
+    "error": "Bucket 'invalid_bucket' does not exist"
+}

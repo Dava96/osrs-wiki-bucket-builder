@@ -1,0 +1,4 @@
+{
+    "bucketQuery": "bucket('exchange').select('id', 'name').where({ 'name', 'Nonexistent item' }).run()",
+    "bucket": []
+}

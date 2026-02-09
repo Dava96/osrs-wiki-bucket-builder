@@ -9,8 +9,7 @@ const config = {
   collectCoverage: true,
   collectCoverageFrom: [
     "src/**/*.ts",
-    "!src/generated/**",
-    "!src/types.ts"
+    "!src/generated/**"
   ],
   coverageDirectory: "coverage",
   moduleNameMapper: {
