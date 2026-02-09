@@ -1,0 +1,10 @@
+{
+    "bucketQuery": "bucket('infobox_item').select('item_name', 'item_id', 'image').where({ 'item_name', 'Raw lobster' }).run()",
+    "bucket": [
+        {
+            "item_name": "Raw lobster",
+            "item_id": ["377"],
+            "image": ["File:Raw lobster.png"]
+        }
+    ]
+}

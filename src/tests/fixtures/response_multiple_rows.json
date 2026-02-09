@@ -1,0 +1,8 @@
+{
+    "bucketQuery": "bucket('exchange').select('id', 'name', 'value').where({ 'value', '>', 100000 }).limit(3).run()",
+    "bucket": [
+        { "id": 4151, "name": "Abyssal whip", "value": 120001 },
+        { "id": 11802, "name": "Armadyl godsword", "value": 5000000 },
+        { "id": 13576, "name": "Dragon warhammer", "value": 30000000 }
+    ]
+}

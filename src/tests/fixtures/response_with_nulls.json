@@ -1,0 +1,7 @@
+{
+    "bucketQuery": "bucket('infobox_item').select('item_name', 'weight', 'quest').run()",
+    "bucket": [
+        { "item_name": "Bronze dagger", "weight": 0.4, "quest": null },
+        { "item_name": "Dragon scimitar", "weight": 1.8, "quest": "Monkey Madness I" }
+    ]
+}
