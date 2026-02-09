@@ -33,7 +33,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Dava96/osrs-wiki-bucket-builder.git"
+    "url": "https://github.com/Dava96/osrs-wiki-bucket-builder"
   },
   "homepage": "https://dava96.github.io/osrs-wiki-bucket-builder",
   "bugs": {
