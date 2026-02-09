@@ -7,6 +7,11 @@ on:
     branches: [main]
     types: [closed]
 
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
 jobs:
   ci:
     if: github.event_name == 'push'
@@ -20,9 +25,6 @@ jobs:
       !startsWith(github.event.head_commit.message, 'release:') &&
       !contains(github.event.head_commit.message, 'release/') &&
       !contains(github.event.head_commit.message, 'chore/update-buckets')
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -59,9 +61,6 @@ jobs:
       github.event_name == 'pull_request' &&
       github.event.pull_request.merged == true &&
       startsWith(github.event.pull_request.title, 'release:')
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
 
