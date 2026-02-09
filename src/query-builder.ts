@@ -428,6 +428,14 @@ export class BucketQueryBuilder<
     }
 
     /**
+     * Escapes a string for safe inclusion in a Lua single-quoted string literal.
+     * Backslashes are escaped first (to avoid double-escaping), then single quotes.
+     */
+    private escapeLuaString(value: string): string {
+        return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    /**
      * Resolves a dotted field reference (`alias.fieldName`) to its real bucket name.
      * Returns the field unchanged if the alias is not recognised.
      */
@@ -570,7 +578,7 @@ export class BucketQueryBuilder<
                 if (typeof valRaw === 'object' && valRaw !== null && '_type' in valRaw && valRaw._type === 'NULL') {
                     return `{ '${field}', bucket.Null() }`;
                 }
-                const val = typeof valRaw === 'string' ? `'${valRaw}'` : valRaw;
+                const val = typeof valRaw === 'string' ? `'${this.escapeLuaString(valRaw)}'` : valRaw;
                 return `{ '${field}', ${val} }`;
             }
             if (cond.length === 3) {
@@ -578,7 +586,7 @@ export class BucketQueryBuilder<
                 if (typeof valRaw === 'object' && valRaw !== null && '_type' in valRaw) {
                     return `{ '${field}', '${cond[1]}', ${this.formatCondition(valRaw)} }`;
                 }
-                const val = typeof valRaw === 'string' ? `'${valRaw}'` : valRaw;
+                const val = typeof valRaw === 'string' ? `'${this.escapeLuaString(valRaw)}'` : valRaw;
                 return `{ '${field}', '${cond[1]}', ${val} }`;
             }
         }
