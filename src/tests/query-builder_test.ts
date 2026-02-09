@@ -195,6 +195,77 @@ describe('BucketQueryBuilder', () => {
         });
     });
 
+    describe('string escaping', () => {
+        describe('escapeLuaString unit tests', () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const escaper = (buildQuery() as any).escapeLuaString.bind(buildQuery());
+
+            test.each([
+                { name: 'single quote', input: "Bob's Axes", expected: "Bob\\'s Axes" },
+                { name: 'backslash', input: 'path\\to\\file', expected: 'path\\\\to\\\\file' },
+                { name: 'both together', input: "It's a \\test", expected: "It\\'s a \\\\test" },
+                { name: 'multiple apostrophes', input: "can't won't don't", expected: "can\\'t won\\'t don\\'t" },
+                { name: 'no special characters', input: 'Dragon scimitar', expected: 'Dragon scimitar' },
+                { name: 'empty string', input: '', expected: '' },
+            ])('escapes $name correctly', ({ input, expected }) => {
+                expect(escaper(input)).toBe(expected);
+            });
+        });
+
+        test('apostrophe in where value', () => {
+            const sql = buildQuery().where('name', "Bob's Brilliant Axes.").printSQL();
+            expect(sql).toContain(".where({ 'name', 'Bob\\'s Brilliant Axes.' })");
+        });
+
+        test('backslash in where value', () => {
+            const sql = buildQuery().where('name', 'path\\to\\file').printSQL();
+            expect(sql).toContain(".where({ 'name', 'path\\\\to\\\\file' })");
+        });
+
+        test('apostrophe with operator', () => {
+            const sql = buildQuery().where('name', '!=', "Bob's").printSQL();
+            expect(sql).toContain("{ 'name', '!=', 'Bob\\'s' }");
+        });
+
+        test('apostrophe in whereNot', () => {
+            const sql = buildQuery().whereNot('name', "Bob's").printSQL();
+            expect(sql).toContain("{ 'name', '!=', 'Bob\\'s' }");
+        });
+
+        test('apostrophe in whereIn', () => {
+            const sql = buildQuery().whereIn('name', ["Bob's", "Tim's"]).printSQL();
+            expect(sql).toContain("{ 'name', 'Bob\\'s' }");
+            expect(sql).toContain("{ 'name', 'Tim\\'s' }");
+        });
+
+        test('apostrophe in whereBetween', () => {
+            const sql = buildQuery().whereBetween('name', ["a'b", "c'd"]).printSQL();
+            expect(sql).toContain("{ 'name', '>=', 'a\\'b' }");
+            expect(sql).toContain("{ 'name', '<=', 'c\\'d' }");
+        });
+
+        test('apostrophe in Bucket.And subconditions', () => {
+            const sql = buildQuery()
+                .where(Bucket.And(['name', "Bob's"], ['name', "Tim's"]))
+                .printSQL();
+            expect(sql).toContain("{ 'name', 'Bob\\'s' }");
+            expect(sql).toContain("{ 'name', 'Tim\\'s' }");
+        });
+
+        test('apostrophe in Bucket.Or subconditions', () => {
+            const sql = buildQuery()
+                .where(Bucket.Or(['name', "Bob's"], ['name', "Tim's"]))
+                .printSQL();
+            expect(sql).toContain("{ 'name', 'Bob\\'s' }");
+            expect(sql).toContain("{ 'name', 'Tim\\'s' }");
+        });
+
+        test('numbers and booleans are not affected', () => {
+            const sql = buildQuery().where('id', 42).printSQL();
+            expect(sql).toContain("{ 'id', 42 }");
+        });
+    });
+
     describe('when', () => {
         test('true condition executes callback', () => {
             let executed = false;
