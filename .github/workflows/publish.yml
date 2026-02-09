@@ -71,10 +71,13 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Configure npm registry
+        run: echo "registry=https://registry.npmjs.org/" > ~/.npmrc
+
       - name: Install and build
         run: |
           npm ci
           npm run build
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: npm publish --provenance --access public
