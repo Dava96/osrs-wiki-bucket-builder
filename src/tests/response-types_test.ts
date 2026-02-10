@@ -244,7 +244,9 @@ describe('BucketResponse.from', () => {
 describe('ValidField constrains select and where', () => {
     test('select accepts valid field names for the main bucket', () => {
         const sql = bucket('exchange').select('id', 'name', 'value').run({ encodeURI: false });
-        expect(sql).toContain("select('id', 'name', 'value')");
+        expect(sql).toContain("'id'");
+        expect(sql).toContain("'name'");
+        expect(sql).toContain("'value'");
     });
 
     test('select accepts dot-notation after a join', () => {
@@ -253,7 +255,8 @@ describe('ValidField constrains select and where', () => {
             .select('sold_by', 'exchange.value')
             .run({ encodeURI: false });
 
-        expect(sql).toContain("select('sold_by', 'exchange.value')");
+        expect(sql).toContain("'sold_by'");
+        expect(sql).toContain("'exchange.value'");
     });
 
     test('select accepts wildcard *', () => {
@@ -273,5 +276,15 @@ describe('ValidField constrains select and where', () => {
             .run({ encodeURI: false });
 
         expect(sql).toContain("{ 'exchange.value', '>', 100 }");
+    });
+
+    test('select accepts page_name as a valid meta field', () => {
+        const sql = bucket('exchange').select('id', 'page_name').run({ encodeURI: false });
+        expect(sql).toContain("'page_name'");
+    });
+
+    test('select accepts page_name_sub as a valid meta field', () => {
+        const sql = bucket('exchange').select('id', 'page_name_sub').run({ encodeURI: false });
+        expect(sql).toContain("'page_name_sub'");
     });
 });

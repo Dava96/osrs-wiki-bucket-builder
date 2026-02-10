@@ -14,6 +14,9 @@ import {
 /** Base URL for the OSRS Wiki Bucket API. */
 const BUCKET_API_BASE = 'https://oldschool.runescape.wiki/api.php';
 
+/** Meta fields auto-injected into every select to match BucketMetaFields typing. */
+const META_FIELDS = ['page_name', 'page_name_sub'] as const;
+
 /**
  * A type-safe query builder for OSRS Wiki Buckets.
  *
@@ -515,6 +518,12 @@ export class BucketQueryBuilder<
             const finalSelectors: string[] = [];
             for (const s of this.selections) {
                 finalSelectors.push(...this.expandField(s));
+            }
+            for (const meta of META_FIELDS) {
+                const quoted = `'${meta}'`;
+                if (!finalSelectors.includes(quoted)) {
+                    finalSelectors.push(quoted);
+                }
             }
             if (finalSelectors.length > 0) {
                 const unique = Array.from(new Set(finalSelectors));
