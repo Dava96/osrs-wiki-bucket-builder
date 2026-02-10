@@ -549,7 +549,7 @@ const query = bucket('infobox_item')
 | `BucketResponse<T>` | Response wrapper class |
 | `BucketResponse.from()` | Creates a typed response from a query builder |
 | `InferBucketResult<T>` | Extracts the inferred row type from a query |
-| `BucketMetaFields` | The `page_name` and `page_name_sub` fields present on every row |
+| `BucketMetaFields` | The `page_name` and `page_name_sub` fields auto-injected into every query |
 | `Operator` | Valid comparison operators |
 | `ScalarValue` | `string \| number \| boolean` |
 

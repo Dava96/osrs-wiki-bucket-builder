@@ -19,29 +19,32 @@ describe('BucketQueryBuilder', () => {
             {
                 name: 'single field',
                 fields: ['id'] as const,
-                expected: ".select('id')",
+                expectedFields: ["'id'", "'page_name'", "'page_name_sub'"],
             },
             {
                 name: 'multiple fields',
                 fields: ['id', 'name'] as const,
-                expected: ".select('id', 'name')",
+                expectedFields: ["'id'", "'name'", "'page_name'", "'page_name_sub'"],
             },
             {
                 name: 'dot notation passthrough for unknown alias',
                 fields: ['Category:X.foo'] as const,
-                expected: ".select('Category:X.foo')",
+                expectedFields: ["'Category:X.foo'", "'page_name'", "'page_name_sub'"],
             },
-        ])('$name', ({ fields, expected }) => {
+        ])('$name', ({ fields, expectedFields }) => {
             const sql = buildQuery()
                 .select(...fields)
                 .printSQL();
-            expect(sql).toContain(expected);
+            for (const field of expectedFields) {
+                expect(sql).toContain(field);
+            }
         });
 
         test('wildcard * expands to all main bucket fields', () => {
             const sql = buildQuery().select('*').printSQL();
-            const expectedFields = EXCHANGE_FIELDS.map((f) => `'${f}'`).join(', ');
-            expect(sql).toContain(`.select(${expectedFields})`);
+            for (const field of EXCHANGE_FIELDS) {
+                expect(sql).toContain(`'${field}'`);
+            }
         });
 
         test('wildcard * with join expands both buckets', () => {
@@ -61,12 +64,12 @@ describe('BucketQueryBuilder', () => {
 
         test('alias.field resolves to real bucket name', () => {
             const sql = buildJoinedQuery().select('src.name').printSQL();
-            expect(sql).toContain(".select('exchange.name')");
+            expect(sql).toContain("'exchange.name'");
         });
 
         test('deduplicates repeated fields', () => {
             const sql = buildQuery().select('id', 'id').printSQL();
-            expect(sql).toContain(".select('id')");
+            expect(sql).toContain("'id'");
             expect(sql).not.toContain("'id', 'id'");
         });
 
@@ -78,7 +81,39 @@ describe('BucketQueryBuilder', () => {
             });
             builder.select('*');
             const sql = builder.printSQL();
-            expect(sql).toContain(".select('*')");
+            expect(sql).toContain(".select('*'");
+        });
+    });
+
+    describe('meta field injection', () => {
+        test('auto-injects page_name and page_name_sub into select', () => {
+            const sql = buildQuery().select('id').printSQL();
+            expect(sql).toContain("'page_name'");
+            expect(sql).toContain("'page_name_sub'");
+        });
+
+        test('does not duplicate when page_name is explicitly selected', () => {
+            const sql = buildQuery().select('id', 'page_name').printSQL();
+            const matches = sql.match(/'page_name'/g) || [];
+            expect(matches.length).toBe(1);
+        });
+
+        test('does not duplicate when page_name_sub is explicitly selected', () => {
+            const sql = buildQuery().select('id', 'page_name_sub').printSQL();
+            const matches = sql.match(/'page_name_sub'/g) || [];
+            expect(matches.length).toBe(1);
+        });
+
+        test('injects meta fields alongside wildcard expansion', () => {
+            const sql = buildQuery().select('*').printSQL();
+            expect(sql).toContain("'page_name'");
+            expect(sql).toContain("'page_name_sub'");
+        });
+
+        test('does not inject when no select is called', () => {
+            const sql = buildQuery().printSQL();
+            expect(sql).not.toContain('.select(');
+            expect(sql).not.toContain("'page_name'");
         });
     });
 

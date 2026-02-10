@@ -12,10 +12,11 @@
 import type { BucketRegistry, BucketName } from './generated/definitions.js';
 
 /**
- * Meta-fields that the Wiki Bucket API injects into every response row.
+ * Meta-fields that the query builder auto-injects into every select.
  *
- * These are not part of any bucket's schema but are always present in
- * the JSON response. `page_name` identifies the source wiki page and
+ * These are not part of any bucket's schema. The query builder automatically
+ * includes them in every generated Lua query so they are always returned in
+ * the response. `page_name` identifies the source wiki page and
  * `page_name_sub` identifies the subpage or version variant.
  *
  * @example
@@ -52,6 +53,7 @@ export interface BucketMetaFields {
 export type ValidField<TMain extends BucketName, TJoinMap extends Record<string, BucketName>> =
     | (keyof BucketRegistry[TMain] & string)
     | JoinedFields<TJoinMap>
+    | keyof BucketMetaFields
     | '*'
     | JoinedWildcards<TJoinMap>;
 
