@@ -1,15 +1,15 @@
 import type { BucketName, BucketRegistry } from './generated/definitions.js';
 import { BUCKET_FIELDS } from './generated/definitions.js';
 import type { BucketMetaFields, SelectResult, ValidField } from './response-types.js';
-import {
-    Bucket,
-    QUERY_DEFAULTS,
-    type BucketCondition,
-    type BucketHelperCondition,
-    type Operator,
-    type OrderByDirection,
-    type ScalarValue,
+import type {
+    BucketCondition,
+    BucketHelperCondition,
+    Operator,
+    OrderByDirection,
+    ScalarValue,
+    SimpleCondition,
 } from './types.js';
+import { Bucket, QUERY_DEFAULTS } from './types.js';
 
 /** Base URL for the OSRS Wiki Bucket API. */
 const BUCKET_API_BASE = 'https://oldschool.runescape.wiki/api.php';
@@ -100,14 +100,8 @@ export class BucketQueryBuilder<
         true
     > {
         this.selections.push(...fields);
-        return this as unknown as BucketQueryBuilder<
-            TMain,
-            TJoinMap,
-            THasSelected extends true
-                ? TSelected & SelectResult<TMain, TJoinMap, F>
-                : SelectResult<TMain, TJoinMap, F> & BucketMetaFields,
-            true
-        >;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+        return this as any;
     }
 
     /**
@@ -199,7 +193,8 @@ export class BucketQueryBuilder<
             this.aliasMap[targetBucket] = targetBucket;
         }
 
-        return this as unknown as BucketQueryBuilder<TMain, Record<string, BucketName>, TSelected, THasSelected>;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+        return this as any;
     }
 
     /**
@@ -226,22 +221,22 @@ export class BucketQueryBuilder<
      */
     where(...conditions: BucketCondition[]): this;
 
-    where(...args: (string | BucketCondition | Operator | ScalarValue | BucketHelperCondition)[]): this {
+    where(...args: (string | BucketCondition | ScalarValue | BucketHelperCondition)[]): this {
         const first = args[0];
         if (typeof first === 'string') {
             if (args.length === 2) {
                 const val = args[1];
-                if (typeof val === 'object' && val !== null && '_type' in val) {
-                    this.whereClauses.push([args[0] as string, val as BucketHelperCondition]);
+                if (typeof val === 'object' && '_type' in val) {
+                    this.whereClauses.push([first, val as BucketHelperCondition]);
                 } else {
-                    this.whereClauses.push([args[0] as string, args[1] as ScalarValue]);
+                    this.whereClauses.push([first, val as ScalarValue]);
                 }
             } else if (args.length === 3) {
-                const val = args[2] as ScalarValue | BucketHelperCondition;
-                if (typeof val === 'object' && val !== null && '_type' in val) {
-                    this.whereClauses.push([args[0] as string, args[1] as Operator, val as BucketHelperCondition]);
+                const val = args[2];
+                if (typeof val === 'object' && '_type' in val) {
+                    this.whereClauses.push([first, args[1] as Operator, val as BucketHelperCondition]);
                 } else {
-                    this.whereClauses.push([args[0] as string, args[1] as Operator, val as ScalarValue]);
+                    this.whereClauses.push([first, args[1] as Operator, val as ScalarValue]);
                 }
             } else {
                 this.whereClauses.push({ _group: args as BucketCondition[] });
@@ -331,7 +326,7 @@ export class BucketQueryBuilder<
         if (!limit || limit <= 0) {
             this.limitValue = QUERY_DEFAULTS.LIMIT;
         } else if (limit > QUERY_DEFAULTS.MAX_LIMIT) {
-            console.warn(`Limit ${limit} exceeds max ${QUERY_DEFAULTS.MAX_LIMIT}, clamping.`);
+            console.warn(`Limit ${String(limit)} exceeds max ${String(QUERY_DEFAULTS.MAX_LIMIT)}, clamping.`);
             this.limitValue = QUERY_DEFAULTS.MAX_LIMIT;
         } else {
             this.limitValue = limit;
@@ -377,7 +372,7 @@ export class BucketQueryBuilder<
         clone.aliasMap = { ...this.aliasMap };
         clone.joins = [...this.joins];
         clone.selections = [...this.selections];
-        clone.whereClauses = JSON.parse(JSON.stringify(this.whereClauses));
+        clone.whereClauses = JSON.parse(JSON.stringify(this.whereClauses)) as BucketCondition[];
         clone.limitValue = this.limitValue;
         clone.offsetValue = this.offsetValue;
         clone.orderClauses = [...this.orderClauses];
@@ -390,7 +385,7 @@ export class BucketQueryBuilder<
      * @param field Must be included in a prior `.select()` call.
      * @param direction `'asc'` or `'desc'`.
      */
-    orderBy<K extends keyof TSelected>(field: K & string, direction: OrderByDirection): this {
+    orderBy(field: keyof TSelected & string, direction: OrderByDirection): this {
         if (this.selections.length > 0) {
             const directMatch = this.selections.includes(field);
             let wildcardMatch = false;
@@ -403,7 +398,7 @@ export class BucketQueryBuilder<
                     }
                     if (sel.endsWith('.*')) {
                         const alias = sel.split('.')[0];
-                        if (field.startsWith(alias + '.')) {
+                        if (alias && field.startsWith(alias + '.')) {
                             wildcardMatch = true;
                             break;
                         }
@@ -446,8 +441,8 @@ export class BucketQueryBuilder<
         if (!field.includes('.')) return field;
         const parts = field.split('.');
         if (parts.length < 2) return field;
-        const alias = parts[0]!;
-        const f = parts[1]!;
+        const alias = parts[0] ?? '';
+        const f = parts[1] ?? '';
         const mapped = this.aliasMap[alias];
         return mapped ? `${mapped}.${f}` : field;
     }
@@ -474,8 +469,8 @@ export class BucketQueryBuilder<
         if (field.includes('.')) {
             const parts = field.split('.');
             if (parts.length >= 2) {
-                const alias = parts[0]!;
-                const subField = parts[1]!;
+                const alias = parts[0] ?? '';
+                const subField = parts[1] ?? '';
                 const realBucket = this.aliasMap[alias];
 
                 if (!realBucket) {
@@ -549,10 +544,10 @@ export class BucketQueryBuilder<
         }
 
         if (this.limitValue !== QUERY_DEFAULTS.LIMIT) {
-            sql += `.limit(${this.limitValue})`;
+            sql += `.limit(${String(this.limitValue)})`;
         }
         if (this.offsetValue !== QUERY_DEFAULTS.OFFSET) {
-            sql += `.offset(${this.offsetValue})`;
+            sql += `.offset(${String(this.offsetValue)})`;
         }
 
         sql += '.run()';
@@ -563,44 +558,55 @@ export class BucketQueryBuilder<
      * Formats a single condition into its Lua representation.
      */
     private formatCondition(cond: BucketCondition): string {
-        if (typeof cond === 'object' && !Array.isArray(cond) && '_type' in cond) {
-            if (cond._type === 'AND' || cond._type === 'OR') {
-                const args = (cond.conditions || []).map((c) => this.formatCondition(c)).join(', ');
-                return `bucket.${cond._type === 'AND' ? 'And' : 'Or'}(${args})`;
-            }
-            if (cond._type === 'NOT') {
-                return `bucket.Not(${this.formatCondition(cond.condition!)})`;
-            }
-            if (cond._type === 'NULL') {
-                return `bucket.Null()`;
-            }
+        if (this.isHelperCondition(cond)) {
+            return this.formatHelperCondition(cond);
         }
 
         if (Array.isArray(cond)) {
-            let field = cond[0];
-            if (typeof field === 'string') {
-                field = this.resolveAlias(field);
-            }
-
-            if (cond.length === 2) {
-                const valRaw = cond[1];
-                if (typeof valRaw === 'object' && valRaw !== null && '_type' in valRaw && valRaw._type === 'NULL') {
-                    return `{ '${field}', bucket.Null() }`;
-                }
-                const val = typeof valRaw === 'string' ? `'${this.escapeLuaString(valRaw)}'` : valRaw;
-                return `{ '${field}', ${val} }`;
-            }
-            if (cond.length === 3) {
-                const valRaw = cond[2];
-                if (typeof valRaw === 'object' && valRaw !== null && '_type' in valRaw) {
-                    return `{ '${field}', '${cond[1]}', ${this.formatCondition(valRaw)} }`;
-                }
-                const val = typeof valRaw === 'string' ? `'${this.escapeLuaString(valRaw)}'` : valRaw;
-                return `{ '${field}', '${cond[1]}', ${val} }`;
-            }
+            return this.formatSimpleCondition(cond);
         }
 
         return JSON.stringify(cond);
+    }
+
+    private isHelperCondition(cond: unknown): cond is BucketHelperCondition {
+        return typeof cond === 'object' && cond !== null && !Array.isArray(cond) && '_type' in cond;
+    }
+
+    private formatHelperCondition(cond: BucketHelperCondition): string {
+        switch (cond._type) {
+            case 'AND':
+            case 'OR': {
+                const args = cond.conditions.map((c) => this.formatCondition(c)).join(', ');
+                return `bucket.${cond._type === 'AND' ? 'And' : 'Or'}(${args})`;
+            }
+            case 'NOT':
+                return `bucket.Not(${this.formatCondition(cond.condition)})`;
+            case 'NULL':
+                return `bucket.Null()`;
+        }
+    }
+
+    private formatSimpleCondition(cond: SimpleCondition): string {
+        const rawField = cond[0];
+        const field = this.resolveAlias(rawField);
+
+        if (cond.length === 2) {
+            const valRaw = cond[1];
+            if (this.isHelperCondition(valRaw) && valRaw._type === 'NULL') {
+                return `{ '${field}', bucket.Null() }`;
+            }
+            const val =
+                typeof valRaw === 'string' ? `'${this.escapeLuaString(valRaw)}'` : String(valRaw as ScalarValue);
+            return `{ '${field}', ${val} }`;
+        }
+
+        const valRaw = cond[2];
+        if (this.isHelperCondition(valRaw)) {
+            return `{ '${field}', '${cond[1]}', ${this.formatCondition(valRaw)} }`;
+        }
+        const val = typeof valRaw === 'string' ? `'${this.escapeLuaString(valRaw)}'` : String(valRaw as ScalarValue);
+        return `{ '${field}', '${cond[1]}', ${val} }`;
     }
 
     /**

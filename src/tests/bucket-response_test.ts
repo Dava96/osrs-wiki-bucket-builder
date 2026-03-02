@@ -89,9 +89,10 @@ describe('BucketResponse', () => {
             const first = response.first();
 
             expect(first).toBeDefined();
-            expect(first!.name).toBe('Abyssal whip');
-            expect(first!.id).toBe(4151);
-            expect(first!.value).toBe(120001);
+            if (!first) throw new Error('Expected first to be defined');
+            expect(first.name).toBe('Abyssal whip');
+            expect(first.id).toBe(4151);
+            expect(first.value).toBe(120001);
         });
 
         test('returns undefined when no rows match', () => {
@@ -125,11 +126,12 @@ describe('BucketResponse', () => {
             const row = response.first();
 
             expect(row).toBeDefined();
-            expect(row!.item_name).toBe('Raw lobster');
-            expect(row!.item_id).toEqual(['377']);
-            expect(row!.image).toEqual(['File:Raw lobster.png']);
-            expect(Array.isArray(row!.item_id)).toBe(true);
-            expect(Array.isArray(row!.image)).toBe(true);
+            if (!row) throw new Error('Expected row to be defined');
+            expect(row.item_name).toBe('Raw lobster');
+            expect(row.item_id).toEqual(['377']);
+            expect(row.image).toEqual(['File:Raw lobster.png']);
+            expect(Array.isArray(row.item_id)).toBe(true);
+            expect(Array.isArray(row.image)).toBe(true);
         });
     });
 
@@ -142,12 +144,16 @@ describe('BucketResponse', () => {
 
             expect(results).toHaveLength(2);
 
-            const bronzeDagger = results[0]!;
+            const bronzeDagger = results[0];
+            expect(bronzeDagger).toBeDefined();
+            if (!bronzeDagger) throw new Error('Expected bronzeDagger to be defined');
             expect(bronzeDagger.item_name).toBe('Bronze dagger');
             expect(bronzeDagger.weight).toBe(0.4);
             expect(bronzeDagger.quest).toBeNull();
 
-            const dragonScimitar = results[1]!;
+            const dragonScimitar = results[1];
+            expect(dragonScimitar).toBeDefined();
+            if (!dragonScimitar) throw new Error('Expected dragonScimitar to be defined');
             expect(dragonScimitar.item_name).toBe('Dragon scimitar');
             expect(dragonScimitar.weight).toBe(1.8);
             expect(dragonScimitar.quest).toBe('Monkey Madness I');

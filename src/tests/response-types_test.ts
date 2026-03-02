@@ -18,6 +18,7 @@ function loadFixture<T = unknown>(filename: string): BucketApiResponse<T> {
  * Helper to assert that a type is assignable to another at compile time.
  * If the types don't match, TypeScript will error on the call site.
  */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function assertType<_T>(_value: _T): void {
     // compile-time only
 }
@@ -202,7 +203,7 @@ describe('toUrl', () => {
 describe('BucketResponse.from', () => {
     test('creates a typed response from a query builder', () => {
         const query = bucket('exchange').select('id', 'name', 'value');
-        const raw = loadFixture('response_success.json') as BucketApiResponse<InferBucketResult<typeof query>>;
+        const raw: BucketApiResponse<InferBucketResult<typeof query>> = loadFixture('response_success.json');
         const response = BucketResponse.from(query, raw);
 
         expect(response.results).toHaveLength(1);
@@ -211,7 +212,7 @@ describe('BucketResponse.from', () => {
 
     test('preserves error handling from the base class', () => {
         const query = bucket('exchange').select('name');
-        const raw = loadFixture('response_error.json') as BucketApiResponse<InferBucketResult<typeof query>>;
+        const raw: BucketApiResponse<InferBucketResult<typeof query>> = loadFixture('response_error.json');
         const response = BucketResponse.from(query, raw);
 
         expect(response.error).toBeDefined();
@@ -220,7 +221,7 @@ describe('BucketResponse.from', () => {
 
     test('first() returns the first result or undefined', () => {
         const query = bucket('exchange').select('id', 'name', 'value');
-        const raw = loadFixture('response_success.json') as BucketApiResponse<InferBucketResult<typeof query>>;
+        const raw: BucketApiResponse<InferBucketResult<typeof query>> = loadFixture('response_success.json');
         const response = BucketResponse.from(query, raw);
         const first = response.first();
 

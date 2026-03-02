@@ -18,7 +18,8 @@
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "prebuild": "npm run clean",
     "buckets": "npx tsx ./scripts/sync_buckets.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "knip": "knip"
   },
   "description": "A strictly typed, zero-dependency TypeScript query builder for the Old School RuneScape Wiki Bucket API.",
   "keywords": [
@@ -43,9 +44,7 @@
     "@eslint/js": "^9.39.2",
     "@jest/globals": "^30.2.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.2.1",
-    "@typescript-eslint/eslint-plugin": "^8.54.0",
-    "@typescript-eslint/parser": "^8.54.0",
+    "@types/node": "^25.3.3",
     "axios": "^1.13.4",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
@@ -53,10 +52,10 @@
     "globals": "^17.3.0",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
+    "knip": "^5.85.0",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
     "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0"
   },
