@@ -43,6 +43,28 @@ export interface CombatAchievement {
   league_region: string;
 }
 
+/** definition for couriertaskline */
+export interface Couriertaskline {
+  /** level */
+  level: number;
+  /** xp */
+  xp: number;
+  /** notice_board */
+  notice_board: string;
+  /** cargo_location */
+  cargo_location: string;
+  /** destination */
+  destination: string;
+  /** item */
+  item: string;
+  /** qty */
+  qty: number;
+  /** task_id */
+  task_id: number;
+  /** transcript */
+  transcript: string;
+}
+
 /** definition for dependency_list */
 export interface DependencyList {
   /** require */
@@ -739,6 +761,7 @@ export interface Varbit {
 export const BUCKET_FIELDS: Record<string, string[]> = {
   'bountytaskline': ['level', 'xp', 'notice_board', 'monster', 'monster_alt', 'item', 'qty', 'rarity', 'task_id', 'transcript'],
   'combat_achievement': ['id', 'name', 'monster', 'task', 'tier', 'type', 'league_region'],
+  'couriertaskline': ['level', 'xp', 'notice_board', 'cargo_location', 'destination', 'item', 'qty', 'task_id', 'transcript'],
   'dependency_list': ['require', 'load_data'],
   'drop_table_sources': ['table_name', 'quantity', 'rolls', 'rarity', 'approx', 'drop_level', 'drop_type'],
   'dropsline': ['item_name', 'drop_json', 'rare_drop_table'],
@@ -783,6 +806,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
 export interface BucketRegistry {
   'bountytaskline': Bountytaskline;
   'combat_achievement': CombatAchievement;
+  'couriertaskline': Couriertaskline;
   'dependency_list': DependencyList;
   'drop_table_sources': DropTableSources;
   'dropsline': Dropsline;
