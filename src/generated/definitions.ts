@@ -569,6 +569,8 @@ export interface Music {
   is_event: boolean;
   /** unlock_detail */
   unlock_detail: string;
+  /** cacheid */
+  cacheid: string;
 }
 
 /** definition for music_map */
@@ -786,7 +788,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'map': ['features', 'options', 'is_historic'],
   'mine': ['is_members_only', 'json'],
   'money_making_guide': ['value', 'recurring', 'json'],
-  'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail'],
+  'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
   'music_map': ['location_json', 'music_tracks', 'is_historic'],
   'npc_id': ['id'],
   'object_id': ['id'],
