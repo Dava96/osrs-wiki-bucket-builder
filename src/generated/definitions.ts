@@ -463,6 +463,20 @@ export interface InfoboxShipPart {
   object_id: number[];
 }
 
+/** definition for infobox_shop */
+export interface InfoboxShop {
+  /** shop_version */
+  shop_version: string;
+  /** specialty */
+  specialty: string;
+  /** location */
+  location: string;
+  /** owner */
+  owner: string;
+  /** is_members_only */
+  is_members_only: boolean;
+}
+
 /** definition for infobox_spell */
 export interface InfoboxSpell {
   /** image */
@@ -569,6 +583,8 @@ export interface Music {
   is_event: boolean;
   /** unlock_detail */
   unlock_detail: string;
+  /** cacheid */
+  cacheid: string;
 }
 
 /** definition for music_map */
@@ -671,6 +687,34 @@ export interface SoundEffect {
   name: string;
   /** id */
   id: number;
+}
+
+/** definition for soundtrack */
+export interface Soundtrack {
+  /** title */
+  title: string;
+  /** release_date */
+  release_date: string;
+  /** cover */
+  cover: string;
+  /** link_tidal */
+  link_tidal: string;
+  /** link_bandcamp */
+  link_bandcamp: string;
+  /** link_qobuz */
+  link_qobuz: string;
+  /** link_itunes */
+  link_itunes: string;
+  /** link_spotify */
+  link_spotify: string;
+  /** link_youtube */
+  link_youtube: string;
+  /** link_amazon */
+  link_amazon: string;
+  /** link_deezer */
+  link_deezer: string;
+  /** link_soundcloud */
+  link_soundcloud: string;
 }
 
 /** definition for storeline */
@@ -778,6 +822,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'infobox_pure': ['name', 'image', 'is_members_only', 'type', 'max_hit', 'combat_level', 'hitpoints', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'prayer_level', 'attack_style', 'all_attack_style'],
   'infobox_scenery': ['default_version', 'image', 'is_members_only', 'league_region', 'release', 'object_id', 'npc_id'],
   'infobox_ship_part': ['image', 'icon', 'item_id', 'object_id'],
+  'infobox_shop': ['shop_version', 'specialty', 'location', 'owner', 'is_members_only'],
   'infobox_spell': ['image', 'is_members_only', 'spellbook', 'uses_material', 'json'],
   'interface': ['name', 'id'],
   'item_id': ['id'],
@@ -786,7 +831,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'map': ['features', 'options', 'is_historic'],
   'mine': ['is_members_only', 'json'],
   'money_making_guide': ['value', 'recurring', 'json'],
-  'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail'],
+  'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
   'music_map': ['location_json', 'music_tracks', 'is_historic'],
   'npc_id': ['id'],
   'object_id': ['id'],
@@ -795,6 +840,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'recommended_equipment': ['json'],
   'seachart': ['description', 'id', 'level', 'type', 'sea', 'ocean', 'location', 'location2', 'hazard', 'xp'],
   'sound_effect': ['name', 'id'],
+  'soundtrack': ['title', 'release_date', 'cover', 'link_tidal', 'link_bandcamp', 'link_qobuz', 'link_itunes', 'link_spotify', 'link_youtube', 'link_amazon', 'link_deezer', 'link_soundcloud'],
   'storeline': ['sold_by', 'sold_item', 'sold_item_image', 'store_buy_price', 'store_sell_price', 'store_currency', 'store_delta', 'store_stock', 'store_buy_multiplier', 'store_sell_multiplier', 'restock_time', 'store_notes', 'sold_item_json'],
   'testing_bucket': ['PAGE_NR', 'PAGE_R', 'TEXT_NR', 'TEXT_R', 'INTEGER_NR', 'INTEGER_R', 'DOUBLE_NR', 'DOUBLE_R', 'BOOLEAN_NR', 'BOOLEAN_R'],
   'transcript': ['npcs'],
@@ -823,6 +869,7 @@ export interface BucketRegistry {
   'infobox_pure': InfoboxPure;
   'infobox_scenery': InfoboxScenery;
   'infobox_ship_part': InfoboxShipPart;
+  'infobox_shop': InfoboxShop;
   'infobox_spell': InfoboxSpell;
   'interface': Interface;
   'item_id': ItemId;
@@ -840,6 +887,7 @@ export interface BucketRegistry {
   'recommended_equipment': RecommendedEquipment;
   'seachart': Seachart;
   'sound_effect': SoundEffect;
+  'soundtrack': Soundtrack;
   'storeline': Storeline;
   'testing_bucket': TestingBucket;
   'transcript': Transcript;
