@@ -23,6 +23,22 @@ export interface Bountytaskline {
   task_id: number;
   /** transcript */
   transcript: string;
+  /** guaranteed */
+  guaranteed: boolean;
+}
+
+/** definition for collection_log_source */
+export interface CollectionLogSource {
+  /** item_id */
+  item_id: number;
+  /** item_name */
+  item_name: string;
+  /** sources */
+  sources: string[];
+  /** rates */
+  rates: string[];
+  /** kinds */
+  kinds: string[];
 }
 
 /** definition for combat_achievement */
@@ -369,8 +385,8 @@ export interface InfoboxMonster {
   range_strength_bonus: number;
   /** magic_damage_bonus */
   magic_damage_bonus: number;
-  /** poison_immune */
-  poison_immune: string;
+  /** poison_resistance */
+  poison_resistance: string;
   /** venom_immune */
   venom_immune: string;
   /** thrall_immune */
@@ -497,6 +513,8 @@ export interface InfoboxShop {
   owner: string;
   /** is_members_only */
   is_members_only: boolean;
+  /** shop_name */
+  shop_name: string;
 }
 
 /** definition for infobox_spell */
@@ -825,7 +843,8 @@ export interface Varbit {
 
 /** Runtime list of fields for each bucket. */
 export const BUCKET_FIELDS: Record<string, string[]> = {
-  'bountytaskline': ['level', 'xp', 'notice_board', 'monster', 'monster_alt', 'item', 'qty', 'rarity', 'task_id', 'transcript'],
+  'bountytaskline': ['level', 'xp', 'notice_board', 'monster', 'monster_alt', 'item', 'qty', 'rarity', 'task_id', 'transcript', 'guaranteed'],
+  'collection_log_source': ['item_id', 'item_name', 'sources', 'rates', 'kinds'],
   'combat_achievement': ['id', 'name', 'monster', 'task', 'tier', 'type', 'league_region'],
   'couriertaskline': ['level', 'xp', 'notice_board', 'cargo_location', 'destination', 'item', 'qty', 'task_id', 'transcript'],
   'demonicpactleaguetask': ['name', 'description', 'skill', 'other', 'tier', 'region', 'pact_task', 'id', 'completion'],
@@ -840,12 +859,12 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'infobox_grid_master_unlock': ['image', 'difficulty', 'row', 'column'],
   'infobox_item': ['item_name', 'image', 'is_members_only', 'item_id', 'examine', 'high_alchemy_value', 'league_region', 'release_date', 'removal_date', 'value', 'weight', 'version_anchor', 'buy_limit', 'default_version', 'quest', 'tradeable'],
   'infobox_location': ['is_members_only'],
-  'infobox_monster': ['default_version', 'name', 'image', 'is_members_only', 'id', 'examine', 'league_region', 'release_date', 'version_anchor', 'combat_level', 'poisonous', 'attribute', 'hitpoints', 'max_hit', 'slayer_level', 'slayer_experience', 'slayer_category', 'uses_skill', 'assigned_by', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'magic_attack_bonus', 'range_attack_bonus', 'stab_attack_bonus', 'slash_attack_bonus', 'crush_attack_bonus', 'stab_defence_bonus', 'slash_defence_bonus', 'crush_defence_bonus', 'magic_defence_bonus', 'range_defence_bonus', 'light_range_defence_bonus', 'standard_range_defence_bonus', 'heavy_range_defence_bonus', 'attack_bonus', 'strength_bonus', 'range_strength_bonus', 'magic_damage_bonus', 'poison_immune', 'venom_immune', 'thrall_immune', 'cannon_immune', 'burn_immune', 'attack_style', 'attack_speed', 'experience_bonus', 'flat_armour', 'size', 'freeze_resistance', 'elemental_weakness', 'elemental_weakness_percent'],
+  'infobox_monster': ['default_version', 'name', 'image', 'is_members_only', 'id', 'examine', 'league_region', 'release_date', 'version_anchor', 'combat_level', 'poisonous', 'attribute', 'hitpoints', 'max_hit', 'slayer_level', 'slayer_experience', 'slayer_category', 'uses_skill', 'assigned_by', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'magic_attack_bonus', 'range_attack_bonus', 'stab_attack_bonus', 'slash_attack_bonus', 'crush_attack_bonus', 'stab_defence_bonus', 'slash_defence_bonus', 'crush_defence_bonus', 'magic_defence_bonus', 'range_defence_bonus', 'light_range_defence_bonus', 'standard_range_defence_bonus', 'heavy_range_defence_bonus', 'attack_bonus', 'strength_bonus', 'range_strength_bonus', 'magic_damage_bonus', 'poison_resistance', 'venom_immune', 'thrall_immune', 'cannon_immune', 'burn_immune', 'attack_style', 'attack_speed', 'experience_bonus', 'flat_armour', 'size', 'freeze_resistance', 'elemental_weakness', 'elemental_weakness_percent'],
   'infobox_npc': ['default_version', 'image', 'is_members_only', 'league_region', 'npc_id', 'npc_name', 'release', 'examine', 'location', 'quest'],
   'infobox_pure': ['name', 'image', 'is_members_only', 'type', 'max_hit', 'combat_level', 'hitpoints', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'prayer_level', 'attack_style', 'all_attack_style'],
   'infobox_scenery': ['default_version', 'image', 'is_members_only', 'league_region', 'release', 'object_id', 'npc_id'],
   'infobox_ship_part': ['image', 'icon', 'item_id', 'object_id'],
-  'infobox_shop': ['shop_version', 'specialty', 'location', 'owner', 'is_members_only'],
+  'infobox_shop': ['shop_version', 'specialty', 'location', 'owner', 'is_members_only', 'shop_name'],
   'infobox_spell': ['image', 'is_members_only', 'spellbook', 'uses_material', 'json'],
   'interface': ['name', 'id'],
   'item_id': ['id'],
@@ -874,6 +893,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
 /** Registry mapping bucket names to their types. */
 export interface BucketRegistry {
   'bountytaskline': Bountytaskline;
+  'collection_log_source': CollectionLogSource;
   'combat_achievement': CombatAchievement;
   'couriertaskline': Couriertaskline;
   'demonicpactleaguetask': Demonicpactleaguetask;
