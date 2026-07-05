@@ -12,55 +12,21 @@ permissions:
   id-token: write
 
 jobs:
-  version-bump:
-    runs-on: ubuntu-latest
-    if: >-
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.merged == true &&
-      !startsWith(github.event.pull_request.title, 'release:') &&
-      !startsWith(github.event.pull_request.title, 'chore: update bucket definitions')
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Bump patch version
-        run: |
-          npm version patch --no-git-tag-version
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
-          echo "TIMESTAMP=$(date +'%Y%m%d-%H%M%S')" >> "$GITHUB_ENV"
-
-      - name: Create release PR
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "release: v${{ env.NEW_VERSION }}"
-          title: "release: v${{ env.NEW_VERSION }}"
-          body: |
-            Automated version bump to `${{ env.NEW_VERSION }}`.
-
-            Merging this PR will publish to npm.
-          branch: release/v${{ env.NEW_VERSION }}-${{ env.TIMESTAMP }}
-          delete-branch: true
-          base: main
-
   publish:
     runs-on: ubuntu-latest
+    concurrency:
+      group: publish-${{ github.event.pull_request.base.ref || github.ref }}
+      cancel-in-progress: false
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' &&
        github.event.pull_request.merged == true &&
-       (startsWith(github.event.pull_request.title, 'release:') ||
-        startsWith(github.event.pull_request.title, 'chore: update bucket definitions')))
+       !startsWith(github.event.pull_request.title, 'release:'))
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -68,21 +34,21 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Bump version for bucket update
+      - name: Bump patch version
         if: >-
-          github.event_name == 'pull_request' &&
-          startsWith(github.event.pull_request.title, 'chore: update bucket definitions')
+          github.event_name == 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          npm version patch -m "release: %s (bucket update)"
+          HUSKY=0 npm version patch -m "release: v%s"
           git push origin HEAD:${{ github.event.pull_request.base.ref }}
           git push --tags
 
-      - name: Install and build
-        run: |
-          npm ci
-          npm run build
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
 
       - name: Publish to npm
         run: npm publish --provenance --access public
