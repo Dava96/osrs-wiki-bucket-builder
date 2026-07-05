@@ -65,6 +65,28 @@ export interface Couriertaskline {
   transcript: string;
 }
 
+/** definition for demonicpactleaguetask */
+export interface Demonicpactleaguetask {
+  /** name */
+  name: string;
+  /** description */
+  description: string;
+  /** skill */
+  skill: string;
+  /** other */
+  other: string;
+  /** tier */
+  tier: string;
+  /** region */
+  region: string;
+  /** pact_task */
+  pact_task: string;
+  /** id */
+  id: number;
+  /** completion */
+  completion: number;
+}
+
 /** definition for dependency_list */
 export interface DependencyList {
   /** require */
@@ -806,6 +828,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'bountytaskline': ['level', 'xp', 'notice_board', 'monster', 'monster_alt', 'item', 'qty', 'rarity', 'task_id', 'transcript'],
   'combat_achievement': ['id', 'name', 'monster', 'task', 'tier', 'type', 'league_region'],
   'couriertaskline': ['level', 'xp', 'notice_board', 'cargo_location', 'destination', 'item', 'qty', 'task_id', 'transcript'],
+  'demonicpactleaguetask': ['name', 'description', 'skill', 'other', 'tier', 'region', 'pact_task', 'id', 'completion'],
   'dependency_list': ['require', 'load_data'],
   'drop_table_sources': ['table_name', 'quantity', 'rolls', 'rarity', 'approx', 'drop_level', 'drop_type'],
   'dropsline': ['item_name', 'drop_json', 'rare_drop_table'],
@@ -853,6 +876,7 @@ export interface BucketRegistry {
   'bountytaskline': Bountytaskline;
   'combat_achievement': CombatAchievement;
   'couriertaskline': Couriertaskline;
+  'demonicpactleaguetask': Demonicpactleaguetask;
   'dependency_list': DependencyList;
   'drop_table_sources': DropTableSources;
   'dropsline': Dropsline;
