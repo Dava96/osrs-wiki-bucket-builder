@@ -2,8 +2,6 @@ name: Publish to npm
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
     types: [closed]
@@ -14,20 +12,17 @@ permissions:
   id-token: write
 
 jobs:
-  ci:
-    if: github.event_name == 'push'
-    uses: ./.github/workflows/ci.yml
-
   version-bump:
-    needs: ci
     runs-on: ubuntu-latest
     if: >-
-      github.event_name == 'push' &&
-      !startsWith(github.event.head_commit.message, 'release:') &&
-      !contains(github.event.head_commit.message, 'release/') &&
-      !contains(github.event.head_commit.message, 'chore/update-buckets')
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      !startsWith(github.event.pull_request.title, 'release:') &&
+      !startsWith(github.event.pull_request.title, 'chore: update bucket definitions')
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -35,11 +30,9 @@ jobs:
 
       - name: Bump patch version
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          IFS='.' read -ra PARTS <<< "$VERSION"
-          NEW="${PARTS[0]}.${PARTS[1]}.$((${PARTS[2]} + 1))"
-          npm version "$NEW" --no-git-tag-version
-          echo "NEW_VERSION=$NEW" >> "$GITHUB_ENV"
+          npm version patch --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
           echo "TIMESTAMP=$(date +'%Y%m%d-%H%M%S')" >> "$GITHUB_ENV"
 
       - name: Create release PR
@@ -66,6 +59,8 @@ jobs:
         startsWith(github.event.pull_request.title, 'chore: update bucket definitions')))
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -74,12 +69,14 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Bump version for bucket update
-        if: "startsWith(github.event.pull_request.title, 'chore: update bucket definitions')"
+        if: >-
+          github.event_name == 'pull_request' &&
+          startsWith(github.event.pull_request.title, 'chore: update bucket definitions')
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           npm version patch -m "release: %s (bucket update)"
-          git push
+          git push origin HEAD:${{ github.event.pull_request.base.ref }}
           git push --tags
 
       - name: Install and build
