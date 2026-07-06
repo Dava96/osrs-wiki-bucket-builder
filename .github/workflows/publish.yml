@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [main]
-    types: [closed]
+    types: [opened, synchronize, reopened, ready_for_review, closed]
 
 permissions:
   contents: write
@@ -12,6 +12,49 @@ permissions:
   id-token: write
 
 jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false &&
+      !startsWith(github.event.pull_request.title, 'release:')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Bump PR patch version
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin "${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}" --depth=1
+
+          BASE_VERSION=$(git show "origin/${{ github.event.pull_request.base.ref }}:package.json" | node -e "let input = ''; process.stdin.on('data', chunk => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input).version));")
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          NEXT_VERSION=$(node -e "const [major, minor, patch] = process.argv[1].split('.').map(Number); console.log(`${major}.${minor}.${patch + 1}`);" "$BASE_VERSION")
+          IS_CURRENT_AT_LEAST_NEXT=$(node -e "const parse = version => version.split('.').map(Number); const [a, b, c] = parse(process.argv[1]); const [x, y, z] = parse(process.argv[2]); console.log(a > x || (a === x && (b > y || (b === y && c >= z))) ? 'true' : 'false');" "$CURRENT_VERSION" "$NEXT_VERSION")
+
+          if [ "$IS_CURRENT_AT_LEAST_NEXT" = "true" ]; then
+            echo "Package version is already $CURRENT_VERSION; no bump needed."
+            exit 0
+          fi
+
+          HUSKY=0 npm version "$NEXT_VERSION" --no-git-tag-version --ignore-scripts
+          git add package.json package-lock.json
+          git commit -m "release: v$NEXT_VERSION"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+
   publish:
     runs-on: ubuntu-latest
     concurrency:
@@ -33,16 +76,6 @@ jobs:
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Bump patch version
-        if: >-
-          github.event_name == 'pull_request'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          HUSKY=0 npm version patch -m "release: v%s"
-          git push origin HEAD:${{ github.event.pull_request.base.ref }}
-          git push --tags
 
       - name: Install dependencies
         run: npm ci
