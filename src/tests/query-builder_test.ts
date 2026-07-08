@@ -9,7 +9,6 @@ function buildQuery(): ReturnType<typeof bucket<'exchange'>> {
     return bucket('exchange');
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function buildJoinedQuery() {
     return bucket('exchange').join('exchange', 'src', 'id', 'name');
 }
@@ -233,7 +232,6 @@ describe('BucketQueryBuilder', () => {
 
     describe('string escaping', () => {
         describe('escapeLuaString unit tests', () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             const escaper = (buildQuery() as any).escapeLuaString.bind(buildQuery()) as (s: string) => string;
 
             test.each([
@@ -381,7 +379,6 @@ describe('BucketQueryBuilder', () => {
         test('warns when field is not in selections', () => {
             const spy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const builder = buildQuery().select('id');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             (builder as any).orderBy('name', 'desc');
             builder.printSQL();
             expect(spy).toHaveBeenCalledWith(
@@ -393,7 +390,6 @@ describe('BucketQueryBuilder', () => {
         test('no warning with global wildcard *', () => {
             const spy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const builder = buildQuery().select('*');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             (builder as any).orderBy('value', 'asc');
             builder.printSQL();
             expect(spy).not.toHaveBeenCalled();
@@ -403,7 +399,6 @@ describe('BucketQueryBuilder', () => {
         test('no warning with alias.* that covers the field', () => {
             const spy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const builder = buildJoinedQuery().select('src.*');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             (builder as any).orderBy('src.name', 'asc');
             builder.printSQL();
             expect(spy).not.toHaveBeenCalled();
@@ -413,7 +408,6 @@ describe('BucketQueryBuilder', () => {
         test('alias.* does not cover unrelated prefix', () => {
             const spy = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const builder = buildJoinedQuery().select('src.*');
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             (builder as any).orderBy('other.name', 'desc');
             builder.printSQL();
             expect(spy).toHaveBeenCalled();
@@ -422,7 +416,6 @@ describe('BucketQueryBuilder', () => {
 
         test('no warning when no selections exist', () => {
             const spy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
             (buildQuery() as any).orderBy('id', 'asc');
             expect(spy).not.toHaveBeenCalled();
             spy.mockRestore();

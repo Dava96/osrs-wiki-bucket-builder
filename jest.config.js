@@ -1,6 +1,5 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+/** @type {import('jest').Config} */
 const config = {
-  preset: 'ts-jest/presets/default-esm', // Use ESM preset
   testEnvironment: 'node',
   rootDir: '.',
   testMatch: [
@@ -18,10 +17,17 @@ const config = {
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   transform: {
     '^.+\\.tsx?$': [
-      'ts-jest',
+      '@swc/jest',
       {
-        useESM: true,
-        tsconfig: 'tsconfig.json'
+        jsc: {
+          parser: {
+            syntax: 'typescript',
+          },
+          target: 'es2022',
+        },
+        module: {
+          type: 'es6',
+        },
       },
     ],
   },

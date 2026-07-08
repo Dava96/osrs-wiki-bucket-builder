@@ -18,7 +18,6 @@ function loadFixture<T = unknown>(filename: string): BucketApiResponse<T> {
  * Helper to assert that a type is assignable to another at compile time.
  * If the types don't match, TypeScript will error on the call site.
  */
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function assertType<_T>(_value: _T): void {
     // compile-time only
 }
