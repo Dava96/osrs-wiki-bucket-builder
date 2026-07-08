@@ -100,7 +100,6 @@ export class BucketQueryBuilder<
         true
     > {
         this.selections.push(...fields);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
         return this as any;
     }
 
@@ -193,7 +192,6 @@ export class BucketQueryBuilder<
             this.aliasMap[targetBucket] = targetBucket;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
         return this as any;
     }
 
