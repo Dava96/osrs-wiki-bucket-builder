@@ -177,6 +177,24 @@ export interface Feedback {
   timestamp: string;
 }
 
+/** definition for ge_index_header */
+export interface GeIndexHeader {
+  /** change_date */
+  change_date: string;
+  /** ge_index_name */
+  ge_index_name: string;
+  /** ge_index_sub */
+  ge_index_sub: string;
+  /** add_quantity */
+  add_quantity: number;
+  /** remove_quantity */
+  remove_quantity: number;
+  /** divisor */
+  divisor: number;
+  /** change_items */
+  change_items: string;
+}
+
 /** definition for infobox_activity */
 export interface InfoboxActivity {
   /** image */
@@ -627,6 +645,14 @@ export interface Music {
   cacheid: string;
 }
 
+/** definition for music_file */
+export interface MusicFile {
+  /** name */
+  name: string;
+  /** id */
+  id: number;
+}
+
 /** definition for music_map */
 export interface MusicMap {
   /** location_json */
@@ -853,6 +879,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'dropsline': ['item_name', 'drop_json', 'rare_drop_table'],
   'exchange': ['id', 'name', 'value', 'is_alchable', 'high_alch', 'low_alch', 'limit', 'module', 'is_historical', 'json'],
   'feedback': ['id', 'comment', 'resolved', 'category', 'timestamp'],
+  'ge_index_header': ['change_date', 'ge_index_name', 'ge_index_sub', 'add_quantity', 'remove_quantity', 'divisor', 'change_items'],
   'infobox_activity': ['image', 'is_members_only', 'default_version'],
   'infobox_bonuses': ['stab_attack_bonus', 'slash_attack_bonus', 'crush_attack_bonus', 'range_attack_bonus', 'magic_attack_bonus', 'stab_defence_bonus', 'slash_defence_bonus', 'crush_defence_bonus', 'range_defence_bonus', 'magic_defence_bonus', 'strength_bonus', 'ranged_strength_bonus', 'prayer_bonus', 'magic_damage_bonus', 'equipment_slot', 'weapon_attack_speed', 'weapon_attack_range', 'combat_style'],
   'infobox_construction': ['default_version', 'image', 'icon', 'item_id', 'object_id', 'level', 'experience', 'uses_skill'],
@@ -874,6 +901,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'mine': ['is_members_only', 'json'],
   'money_making_guide': ['value', 'recurring', 'json'],
   'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
+  'music_file': ['name', 'id'],
   'music_map': ['location_json', 'music_tracks', 'is_historic'],
   'npc_id': ['id'],
   'object_id': ['id'],
@@ -902,6 +930,7 @@ export interface BucketRegistry {
   'dropsline': Dropsline;
   'exchange': Exchange;
   'feedback': Feedback;
+  'ge_index_header': GeIndexHeader;
   'infobox_activity': InfoboxActivity;
   'infobox_bonuses': InfoboxBonuses;
   'infobox_construction': InfoboxConstruction;
@@ -923,6 +952,7 @@ export interface BucketRegistry {
   'mine': Mine;
   'money_making_guide': MoneyMakingGuide;
   'music': Music;
+  'music_file': MusicFile;
   'music_map': MusicMap;
   'npc_id': NpcId;
   'object_id': ObjectId;
