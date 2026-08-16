@@ -663,6 +663,18 @@ export interface MusicMap {
   is_historic: boolean;
 }
 
+/** definition for music_versions */
+export interface MusicVersions {
+  /** track */
+  track: string;
+  /** version */
+  version: string;
+  /** date */
+  date: string;
+  /** change */
+  change: string;
+}
+
 /** definition for npc_id */
 export interface NpcId {
   /** id */
@@ -903,6 +915,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
   'music_file': ['name', 'id'],
   'music_map': ['location_json', 'music_tracks', 'is_historic'],
+  'music_versions': ['track', 'version', 'date', 'change'],
   'npc_id': ['id'],
   'object_id': ['id'],
   'quest': ['description', 'enemies_to_defeat', 'ironman_concerns', 'items_required', 'official_difficulty', 'official_length', 'requirements', 'start_point', 'json'],
@@ -954,6 +967,7 @@ export interface BucketRegistry {
   'music': Music;
   'music_file': MusicFile;
   'music_map': MusicMap;
+  'music_versions': MusicVersions;
   'npc_id': NpcId;
   'object_id': ObjectId;
   'quest': Quest;
