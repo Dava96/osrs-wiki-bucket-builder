@@ -27,6 +27,40 @@ export interface Bountytaskline {
   guaranteed: boolean;
 }
 
+/** definition for clue_equipment */
+export interface ClueEquipment {
+  /** clue_id */
+  clue_id: number;
+  /** set_id */
+  set_id: number;
+  /** group_id */
+  group_id: number;
+  /** item */
+  item: string;
+  /** base_item */
+  base_item: string;
+  /** price_items */
+  price_items: string[];
+  /** price_quantities */
+  price_quantities: number[];
+  /** is_alternate */
+  is_alternate: boolean;
+}
+
+/** definition for clue_info */
+export interface ClueInfo {
+  /** id */
+  id: number;
+  /** tier */
+  tier: string;
+  /** emote */
+  emote: string[];
+  /** location */
+  location: string;
+  /** reference */
+  reference: string;
+}
+
 /** definition for collection_log_source */
 export interface CollectionLogSource {
   /** item_id */
@@ -405,8 +439,8 @@ export interface InfoboxMonster {
   magic_damage_bonus: number;
   /** poison_resistance */
   poison_resistance: string;
-  /** venom_immune */
-  venom_immune: string;
+  /** venom_resistance */
+  venom_resistance: string;
   /** thrall_immune */
   thrall_immune: string;
   /** cannon_immune */
@@ -663,6 +697,18 @@ export interface MusicMap {
   is_historic: boolean;
 }
 
+/** definition for music_versions */
+export interface MusicVersions {
+  /** track */
+  track: string;
+  /** version */
+  version: string;
+  /** date */
+  date: string;
+  /** change */
+  change: string;
+}
+
 /** definition for npc_id */
 export interface NpcId {
   /** id */
@@ -870,6 +916,8 @@ export interface Varbit {
 /** Runtime list of fields for each bucket. */
 export const BUCKET_FIELDS: Record<string, string[]> = {
   'bountytaskline': ['level', 'xp', 'notice_board', 'monster', 'monster_alt', 'item', 'qty', 'rarity', 'task_id', 'transcript', 'guaranteed'],
+  'clue_equipment': ['clue_id', 'set_id', 'group_id', 'item', 'base_item', 'price_items', 'price_quantities', 'is_alternate'],
+  'clue_info': ['id', 'tier', 'emote', 'location', 'reference'],
   'collection_log_source': ['item_id', 'item_name', 'sources', 'rates', 'kinds'],
   'combat_achievement': ['id', 'name', 'monster', 'task', 'tier', 'type', 'league_region'],
   'couriertaskline': ['level', 'xp', 'notice_board', 'cargo_location', 'destination', 'item', 'qty', 'task_id', 'transcript'],
@@ -886,7 +934,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'infobox_grid_master_unlock': ['image', 'difficulty', 'row', 'column'],
   'infobox_item': ['item_name', 'image', 'is_members_only', 'item_id', 'examine', 'high_alchemy_value', 'league_region', 'release_date', 'removal_date', 'value', 'weight', 'version_anchor', 'buy_limit', 'default_version', 'quest', 'tradeable'],
   'infobox_location': ['is_members_only'],
-  'infobox_monster': ['default_version', 'name', 'image', 'is_members_only', 'id', 'examine', 'league_region', 'release_date', 'version_anchor', 'combat_level', 'poisonous', 'attribute', 'hitpoints', 'max_hit', 'slayer_level', 'slayer_experience', 'slayer_category', 'uses_skill', 'assigned_by', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'magic_attack_bonus', 'range_attack_bonus', 'stab_attack_bonus', 'slash_attack_bonus', 'crush_attack_bonus', 'stab_defence_bonus', 'slash_defence_bonus', 'crush_defence_bonus', 'magic_defence_bonus', 'range_defence_bonus', 'light_range_defence_bonus', 'standard_range_defence_bonus', 'heavy_range_defence_bonus', 'attack_bonus', 'strength_bonus', 'range_strength_bonus', 'magic_damage_bonus', 'poison_resistance', 'venom_immune', 'thrall_immune', 'cannon_immune', 'burn_immune', 'attack_style', 'attack_speed', 'experience_bonus', 'flat_armour', 'size', 'freeze_resistance', 'elemental_weakness', 'elemental_weakness_percent'],
+  'infobox_monster': ['default_version', 'name', 'image', 'is_members_only', 'id', 'examine', 'league_region', 'release_date', 'version_anchor', 'combat_level', 'poisonous', 'attribute', 'hitpoints', 'max_hit', 'slayer_level', 'slayer_experience', 'slayer_category', 'uses_skill', 'assigned_by', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'magic_attack_bonus', 'range_attack_bonus', 'stab_attack_bonus', 'slash_attack_bonus', 'crush_attack_bonus', 'stab_defence_bonus', 'slash_defence_bonus', 'crush_defence_bonus', 'magic_defence_bonus', 'range_defence_bonus', 'light_range_defence_bonus', 'standard_range_defence_bonus', 'heavy_range_defence_bonus', 'attack_bonus', 'strength_bonus', 'range_strength_bonus', 'magic_damage_bonus', 'poison_resistance', 'venom_resistance', 'thrall_immune', 'cannon_immune', 'burn_immune', 'attack_style', 'attack_speed', 'experience_bonus', 'flat_armour', 'size', 'freeze_resistance', 'elemental_weakness', 'elemental_weakness_percent'],
   'infobox_npc': ['default_version', 'image', 'is_members_only', 'league_region', 'npc_id', 'npc_name', 'release', 'examine', 'location', 'quest'],
   'infobox_pure': ['name', 'image', 'is_members_only', 'type', 'max_hit', 'combat_level', 'hitpoints', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'prayer_level', 'attack_style', 'all_attack_style'],
   'infobox_scenery': ['default_version', 'image', 'is_members_only', 'league_region', 'release', 'object_id', 'npc_id'],
@@ -903,6 +951,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
   'music_file': ['name', 'id'],
   'music_map': ['location_json', 'music_tracks', 'is_historic'],
+  'music_versions': ['track', 'version', 'date', 'change'],
   'npc_id': ['id'],
   'object_id': ['id'],
   'quest': ['description', 'enemies_to_defeat', 'ironman_concerns', 'items_required', 'official_difficulty', 'official_length', 'requirements', 'start_point', 'json'],
@@ -921,6 +970,8 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
 /** Registry mapping bucket names to their types. */
 export interface BucketRegistry {
   'bountytaskline': Bountytaskline;
+  'clue_equipment': ClueEquipment;
+  'clue_info': ClueInfo;
   'collection_log_source': CollectionLogSource;
   'combat_achievement': CombatAchievement;
   'couriertaskline': Couriertaskline;
@@ -954,6 +1005,7 @@ export interface BucketRegistry {
   'music': Music;
   'music_file': MusicFile;
   'music_map': MusicMap;
+  'music_versions': MusicVersions;
   'npc_id': NpcId;
   'object_id': ObjectId;
   'quest': Quest;
