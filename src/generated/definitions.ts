@@ -375,6 +375,8 @@ export interface InfoboxMonster {
   version_anchor: string;
   /** combat_level */
   combat_level: number;
+  /** is_aggressive */
+  is_aggressive: string;
   /** poisonous */
   poisonous: string;
   /** attribute */
@@ -451,6 +453,8 @@ export interface InfoboxMonster {
   attack_style: string[];
   /** attack_speed */
   attack_speed: number;
+  /** respawn_time */
+  respawn_time: number;
   /** experience_bonus */
   experience_bonus: number;
   /** flat_armour */
@@ -942,7 +946,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'infobox_grid_master_unlock': ['image', 'difficulty', 'row', 'column'],
   'infobox_item': ['item_name', 'image', 'is_members_only', 'item_id', 'examine', 'high_alchemy_value', 'league_region', 'release_date', 'removal_date', 'value', 'weight', 'version_anchor', 'buy_limit', 'default_version', 'quest', 'tradeable'],
   'infobox_location': ['is_members_only'],
-  'infobox_monster': ['default_version', 'name', 'image', 'is_members_only', 'id', 'examine', 'league_region', 'release_date', 'version_anchor', 'combat_level', 'poisonous', 'attribute', 'hitpoints', 'max_hit', 'slayer_level', 'slayer_experience', 'slayer_category', 'uses_skill', 'assigned_by', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'magic_attack_bonus', 'range_attack_bonus', 'stab_attack_bonus', 'slash_attack_bonus', 'crush_attack_bonus', 'stab_defence_bonus', 'slash_defence_bonus', 'crush_defence_bonus', 'magic_defence_bonus', 'range_defence_bonus', 'light_range_defence_bonus', 'standard_range_defence_bonus', 'heavy_range_defence_bonus', 'attack_bonus', 'strength_bonus', 'range_strength_bonus', 'magic_damage_bonus', 'poison_resistance', 'venom_resistance', 'thrall_immune', 'cannon_immune', 'burn_immune', 'attack_style', 'attack_speed', 'experience_bonus', 'flat_armour', 'size', 'freeze_resistance', 'elemental_weakness', 'elemental_weakness_percent'],
+  'infobox_monster': ['default_version', 'name', 'image', 'is_members_only', 'id', 'examine', 'league_region', 'release_date', 'version_anchor', 'combat_level', 'is_aggressive', 'poisonous', 'attribute', 'hitpoints', 'max_hit', 'slayer_level', 'slayer_experience', 'slayer_category', 'uses_skill', 'assigned_by', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'magic_attack_bonus', 'range_attack_bonus', 'stab_attack_bonus', 'slash_attack_bonus', 'crush_attack_bonus', 'stab_defence_bonus', 'slash_defence_bonus', 'crush_defence_bonus', 'magic_defence_bonus', 'range_defence_bonus', 'light_range_defence_bonus', 'standard_range_defence_bonus', 'heavy_range_defence_bonus', 'attack_bonus', 'strength_bonus', 'range_strength_bonus', 'magic_damage_bonus', 'poison_resistance', 'venom_resistance', 'thrall_immune', 'cannon_immune', 'burn_immune', 'attack_style', 'attack_speed', 'respawn_time', 'experience_bonus', 'flat_armour', 'size', 'freeze_resistance', 'elemental_weakness', 'elemental_weakness_percent'],
   'infobox_npc': ['default_version', 'image', 'is_members_only', 'league_region', 'npc_id', 'npc_name', 'release', 'examine', 'location', 'quest'],
   'infobox_pure': ['name', 'image', 'is_members_only', 'type', 'max_hit', 'combat_level', 'hitpoints', 'attack_level', 'strength_level', 'defence_level', 'ranged_level', 'magic_level', 'prayer_level', 'attack_style', 'all_attack_style'],
   'infobox_scenery': ['default_version', 'image', 'is_members_only', 'league_region', 'release', 'object_id', 'npc_id'],
