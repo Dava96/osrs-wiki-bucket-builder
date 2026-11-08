@@ -671,6 +671,8 @@ export interface Music {
   number: number;
   /** duration */
   duration: string;
+  /** tempo */
+  tempo: string;
   /** composer */
   composer: string[];
   /** unlock_hint */
@@ -963,7 +965,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'mine': ['is_members_only', 'json'],
   'mmg_output': ['item', 'qty_per_hour'],
   'money_making_guide': ['value', 'recurring', 'json'],
-  'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
+  'music': ['title', 'sort_name', 'number', 'duration', 'tempo', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
   'music_file': ['name', 'id'],
   'music_map': ['location_json', 'music_tracks', 'is_historic'],
   'music_versions': ['track', 'version', 'date', 'change'],
