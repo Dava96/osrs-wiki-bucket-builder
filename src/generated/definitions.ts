@@ -671,6 +671,8 @@ export interface Music {
   number: number;
   /** duration */
   duration: string;
+  /** tempo */
+  tempo: string;
   /** composer */
   composer: string[];
   /** unlock_hint */
@@ -907,6 +909,8 @@ export interface Transcript {
 export interface Update {
   /** date */
   date: number;
+  /** date_rev */
+  date_rev: number;
   /** type */
   type: string;
   /** year */
@@ -915,6 +919,14 @@ export interface Update {
   month: number;
   /** day */
   day: number;
+  /** year_rev */
+  year_rev: number;
+  /** month_rev */
+  month_rev: number;
+  /** day_rev */
+  day_rev: number;
+  /** patch_parent */
+  patch_parent: string;
 }
 
 /** definition for varbit */
@@ -963,7 +975,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'mine': ['is_members_only', 'json'],
   'mmg_output': ['item', 'qty_per_hour'],
   'money_making_guide': ['value', 'recurring', 'json'],
-  'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
+  'music': ['title', 'sort_name', 'number', 'duration', 'tempo', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
   'music_file': ['name', 'id'],
   'music_map': ['location_json', 'music_tracks', 'is_historic'],
   'music_versions': ['track', 'version', 'date', 'change'],
@@ -978,7 +990,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'storeline': ['sold_by', 'sold_item', 'sold_item_image', 'store_buy_price', 'store_sell_price', 'store_currency', 'store_delta', 'store_stock', 'store_buy_multiplier', 'store_sell_multiplier', 'restock_time', 'store_notes', 'sold_item_json'],
   'testing_bucket': ['PAGE_NR', 'PAGE_R', 'TEXT_NR', 'TEXT_R', 'INTEGER_NR', 'INTEGER_R', 'DOUBLE_NR', 'DOUBLE_R', 'BOOLEAN_NR', 'BOOLEAN_R'],
   'transcript': ['npcs'],
-  'update': ['date', 'type', 'year', 'month', 'day'],
+  'update': ['date', 'date_rev', 'type', 'year', 'month', 'day', 'year_rev', 'month_rev', 'day_rev', 'patch_parent'],
   'varbit': ['content', 'name', 'index'],
 };
 
