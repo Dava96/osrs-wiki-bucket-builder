@@ -440,7 +440,7 @@ export interface InfoboxMonster {
   /** magic_damage_bonus */
   magic_damage_bonus: number;
   /** poison_resistance */
-  poison_resistance: string;
+  poison_resistance: number;
   /** venom_resistance */
   venom_resistance: string;
   /** thrall_immune */
@@ -464,7 +464,7 @@ export interface InfoboxMonster {
   /** size */
   size: number;
   /** freeze_resistance */
-  freeze_resistance: string;
+  freeze_resistance: number;
   /** elemental_weakness */
   elemental_weakness: string;
   /** elemental_weakness_percent */
@@ -671,6 +671,8 @@ export interface Music {
   number: number;
   /** duration */
   duration: string;
+  /** tempo */
+  tempo: string;
   /** composer */
   composer: string[];
   /** unlock_hint */
@@ -733,6 +735,36 @@ export interface NpcId {
 export interface ObjectId {
   /** id */
   id: string[];
+}
+
+/** definition for poll */
+export interface Poll {
+  /** archive */
+  archive: boolean;
+  /** id */
+  id: number;
+  /** start_date */
+  start_date: string;
+  /** end_date */
+  end_date: string;
+  /** votes */
+  votes: number;
+  /** questions */
+  questions: number;
+  /** poll_type */
+  poll_type: string;
+}
+
+/** definition for poll_question */
+export interface PollQuestion {
+  /** question_number */
+  question_number: number;
+  /** question_text */
+  question_text: string;
+  /** answer */
+  answer: string[];
+  /** votes */
+  votes: number[];
 }
 
 /** definition for quest */
@@ -907,6 +939,8 @@ export interface Transcript {
 export interface Update {
   /** date */
   date: number;
+  /** date_rev */
+  date_rev: number;
   /** type */
   type: string;
   /** year */
@@ -915,6 +949,14 @@ export interface Update {
   month: number;
   /** day */
   day: number;
+  /** year_rev */
+  year_rev: number;
+  /** month_rev */
+  month_rev: number;
+  /** day_rev */
+  day_rev: number;
+  /** patch_parent */
+  patch_parent: string;
 }
 
 /** definition for varbit */
@@ -963,12 +1005,14 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'mine': ['is_members_only', 'json'],
   'mmg_output': ['item', 'qty_per_hour'],
   'money_making_guide': ['value', 'recurring', 'json'],
-  'music': ['title', 'sort_name', 'number', 'duration', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
+  'music': ['title', 'sort_name', 'number', 'duration', 'tempo', 'composer', 'unlock_hint', 'track', 'release_date', 'release_update', 'is_members_only', 'is_jingle', 'is_event', 'unlock_detail', 'cacheid'],
   'music_file': ['name', 'id'],
   'music_map': ['location_json', 'music_tracks', 'is_historic'],
   'music_versions': ['track', 'version', 'date', 'change'],
   'npc_id': ['id'],
   'object_id': ['id'],
+  'poll': ['archive', 'id', 'start_date', 'end_date', 'votes', 'questions', 'poll_type'],
+  'poll_question': ['question_number', 'question_text', 'answer', 'votes'],
   'quest': ['description', 'enemies_to_defeat', 'ironman_concerns', 'items_required', 'official_difficulty', 'official_length', 'requirements', 'start_point', 'json'],
   'recipe': ['uses_material', 'uses_tool', 'uses_facility', 'is_members_only', 'is_boostable', 'uses_skill', 'source_template', 'production_json'],
   'recommended_equipment': ['json'],
@@ -978,7 +1022,7 @@ export const BUCKET_FIELDS: Record<string, string[]> = {
   'storeline': ['sold_by', 'sold_item', 'sold_item_image', 'store_buy_price', 'store_sell_price', 'store_currency', 'store_delta', 'store_stock', 'store_buy_multiplier', 'store_sell_multiplier', 'restock_time', 'store_notes', 'sold_item_json'],
   'testing_bucket': ['PAGE_NR', 'PAGE_R', 'TEXT_NR', 'TEXT_R', 'INTEGER_NR', 'INTEGER_R', 'DOUBLE_NR', 'DOUBLE_R', 'BOOLEAN_NR', 'BOOLEAN_R'],
   'transcript': ['npcs'],
-  'update': ['date', 'type', 'year', 'month', 'day'],
+  'update': ['date', 'date_rev', 'type', 'year', 'month', 'day', 'year_rev', 'month_rev', 'day_rev', 'patch_parent'],
   'varbit': ['content', 'name', 'index'],
 };
 
@@ -1024,6 +1068,8 @@ export interface BucketRegistry {
   'music_versions': MusicVersions;
   'npc_id': NpcId;
   'object_id': ObjectId;
+  'poll': Poll;
+  'poll_question': PollQuestion;
   'quest': Quest;
   'recipe': Recipe;
   'recommended_equipment': RecommendedEquipment;
